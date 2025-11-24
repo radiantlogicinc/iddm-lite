@@ -2,6 +2,8 @@ services:
   zookeeper:
     build:
       context: ./docker/zk
+      args:
+        - ZK_TAG=${ZK_TAG}
     image: radiantone/homedepot-zookeeper:${ZK_TAG}
     platform: linux/amd64
     container_name: zookeeper

@@ -1,6 +1,6 @@
-ARG ZK_VERSION='3.5.8-secure'
+ARG ZK_TAG
 
-FROM radiantone/zookeeper:$ZK_VERSION
+FROM radiantone/zookeeper:$ZK_TAG
 
 HEALTHCHECK --interval=2s --timeout=30s --retries=3 \
   CMD curl -f http://localhost:8080/commands/ruok
