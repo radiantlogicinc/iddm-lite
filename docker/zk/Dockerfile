@@ -1,6 +1,6 @@
-ARG ZK_TAG
+ARG ZOOKEEPER_VERSION
 
-FROM radiantone/zookeeper:$ZK_TAG
+FROM radiantone/zookeeper:$ZOOKEEPER_VERSION
 
 HEALTHCHECK --interval=2s --timeout=30s --retries=3 \
   CMD curl -f http://localhost:8080/commands/ruok

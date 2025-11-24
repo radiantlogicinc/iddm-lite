@@ -32,12 +32,12 @@ services:
         limits:
           memory: 512m
 
-  fid:
-    build:
-      context: ./docker/zk
-      args:
-        - IDDM_VERSION=${IDDM_VERSION}
-    image: radiantone/homedepot-fid:${IDDM_VERSION}
+#  fid:
+#    build:
+#      context: ./docker/zk
+#      args:
+#        - IDDM_VERSION=${IDDM_VERSION}
+#    image: radiantone/homedepot-fid:${IDDM_VERSION}
 
 networks:
   fidNetwork:
