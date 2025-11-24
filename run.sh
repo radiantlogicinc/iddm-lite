@@ -2,6 +2,8 @@
 
 set -euo pipefail
 
+ENV_FILE_ARGS=(--env-file .env --env-file .env-server)
+
 check_for_env_files() {
   if [ ! -f .env-server ]; then
     echo "Missing .env-server file with server-specific environment variables" >&2
@@ -23,8 +25,7 @@ start() {
 
   docker compose \
     --profile fid \
-    --env-file .env \
-    --env-file .env-server \
+    "${ENV_FILE_ARGS[@]}" \
     up -d
 }
 
@@ -32,8 +33,7 @@ stop() {
   echo "Stopping RadiantLogic IDDM-Lite (FID & Zookeeper) application"
 
   docker compose \
-    --env-file .env \
-    --env-file .env-server \
+    "${ENV_FILE_ARGS[@]}" \
     --profile fid \
     stop
 }
