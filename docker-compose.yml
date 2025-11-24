@@ -34,7 +34,7 @@ services:
 
   fid:
     build:
-      context: ./docker/zk
+      context: ./docker/fid
       args:
         - IDDM_VERSION=${IDDM_VERSION}
     image: radiantone/homedepot-fid:${IDDM_VERSION}
