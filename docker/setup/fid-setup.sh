@@ -272,6 +272,13 @@ execute_datasource_update() {
   done
 }
 
+fix_report_change_status() {
+  echo "Setting report.json change status for all resources to ADDED prior to performing promotion import"
+
+  sed -i 's/"changeStatus" : null,/"changeStatus" : "ADDED",/g' \
+    "$FID_GIT_CONFIG_DIR_PATH/report.json"
+}
+
 find_and_execute_operations() {
   local promotion_needed
   promotion_needed=false
@@ -298,6 +305,7 @@ find_and_execute_operations() {
   fi
 
   if [ "$promotion_needed" == "true" ]; then
+    fix_report_change_status
     execute_promotion_import
   fi
 
