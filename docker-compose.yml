@@ -89,8 +89,8 @@ services:
     networks:
       - fidNetwork
     volumes:
-      - '${FID_GIT_DATA_PATH}:/fid-git'
-      - '${INPUT_DIR_PATH}:/input'
+      - '${IDDM_DATA_ROOT}/git:/fid-git'
+      - '${IDDM_DATA_ROOT}/setup:/input'
     profiles:
       - setup
     deploy:
