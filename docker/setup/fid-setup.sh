@@ -25,9 +25,25 @@ wait_for_fid() {
   exit 1
 }
 
+execute_promotion_from_git() {
+  echo "TBD"
+}
+
+execute_promotion_from_zip() {
+  echo "TBD"
+}
+
 find_and_execute_operations() {
-  find . -maxdepth 1 -mindepth 1 -name 'iddm-*' | while read -r file; do
+  find "$INPUT_DIR" -maxdepth 1 -mindepth 1 -name 'iddm-*' | while read -r file; do
     echo "Executing operation for $file"
+    case "$file" in
+      iddm-promotion-git.sh) execute_promotion_from_git "$file" ;;
+      iddm-promotion.zip) execute_promotion_from_zip "$file" ;;
+      *)
+        echo "Unknown operation file: $file" >&2
+        exit 1
+      ;;
+    esac
   done
 }
 

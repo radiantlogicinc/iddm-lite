@@ -3,3 +3,4 @@
 *.iml
 .env-server
 reset.sh
+test-data
