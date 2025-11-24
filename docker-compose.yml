@@ -1,0 +1,35 @@
+services:
+  zookeeper:
+    build:
+      context: ./docker/zk
+    image: radiantone/homedepot-zookeeper:${ZK_TAG}
+    platform: linux/amd64
+    container_name: zookeeper
+    hostname: zookeeper-0
+    networks:
+      - fidNetwork
+    profiles:
+      - fid
+    ports:
+      - '2181:2181'
+      - '2888:2888'
+      - '3888:3888'
+      - '8080:8080'
+    environment:
+      - ADMIN_PORT=8080
+      - CLIENT_PORT=2181
+      - ENSEMBLE_PORT=2888
+      - JAVA_HOME=/opt/radiantone/rli-zookeeper-external/jdk/jre/
+      - LEADERRELECTION_PORT=3888
+      - METRICS_PORT=9095
+      - ZOOKEEPER_FLEET_SIZE=1
+    volumes:
+      - '${ZK_DATA_PATH}:/opt/radiantone/rli-zookeeper-external'
+    deploy:
+      resources:
+        limits:
+          memory: 512m
+
+networks:
+  fidNetwork:
+    driver: bridge

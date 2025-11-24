@@ -1,4 +1,4 @@
-ARG ZK_VERSION='3.5.8'
+ARG ZK_VERSION='3.5.8-secure'
 
 FROM radiantone/zookeeper:$ZK_VERSION
 
