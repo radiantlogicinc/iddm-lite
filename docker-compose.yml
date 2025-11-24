@@ -26,7 +26,7 @@ services:
       - METRICS_PORT=9095
       - ZOOKEEPER_FLEET_SIZE=1
     volumes:
-      - '${ZK_DATA_PATH}:/opt/radiantone/rli-zookeeper-external'
+      - '${IDDM_DATA_ROOT}/zookeeper:/opt/radiantone/rli-zookeeper-external'
     deploy:
       resources:
         limits:
