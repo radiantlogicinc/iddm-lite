@@ -77,6 +77,8 @@ stage_promotion_from_git() {
 Host *
   StrictHostKeyChecking no
   UserKnownHostsFile=/dev/null
+  IdentityFile ~/.ssh/id_key
+  IdentitiesOnly yes
 EOF
 
   if [ -d "$FID_GIT_CONFIG_DIR_PATH" ]; then
