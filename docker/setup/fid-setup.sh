@@ -185,12 +185,44 @@ execute_database_datasource_update() {
   local ds_name
   ds_name="$1"
 
+  echo "Configuring Database datasource"
 
+  local uri_encoded_name
+  uri_encoded_name=$(echo -n "$homedepot_central_name" | jq -sRr @uri)
+
+  local data_source
+  data_source=$(execute_admin_request \
+    "/data_sources/$uri_encoded_name")
   echo "TBD"
 }
 
 execute_ldap_datasource_update() {
-  echo "TBD"
+  local ds_name
+  ds_name="$1"
+
+  echo "Configuring LDAP datasource"
+
+  local uri_encoded_name
+  uri_encoded_name=$(echo -n "$homedepot_central_name" | jq -sRr @uri)
+
+  local data_source
+  data_source=$(execute_admin_request \
+    "/data_sources/$uri_encoded_name")
+
+  data_source=$(echo -n "$data_source" | jq --arg host "$HOST" '.host = $host')
+  data_source=$(echo -n "$data_source" | jq --arg port "$PORT" '.port = $port')
+  data_source=$(echo -n "$data_source" | jq --arg tls "$IS_SSL" '.ssl = $tls')
+  data_source=$(echo -n "$data_source" | jq --arg user "$BIND_DN" '.bindDn = $user')
+  data_source=$(echo -n "$data_source" | jq --arg password "$BIND_PASSWORD" '.password = $password')
+
+  execute_admin_request \
+    "/data_sources/$uri_encoded_name" \
+    -X PUT \
+    -H 'Content-Type: application/json' \
+    -d "$data_source" \
+    1>/dev/null
+
+  echo "Datasource configured successfully"
 }
 
 execute_datasource_update() {
