@@ -50,7 +50,7 @@ stage_promotion_from_git() {
     git checkout "$GIT_BRANCH"
   )
 
-  promotion_needed=true
+  echo "Promotion data staged successfully"
 }
 
 stage_promotion_from_zip() {
@@ -61,11 +61,32 @@ stage_promotion_from_zip() {
   fi
 
   unzip -q "$INPUT_PROMOTION_ZIP_FILE" -d "$FID_GIT_CONFIG_DIR_PATH"
-
+  echo "Promotion data staged successfully"
 }
 
 execute_promotion_import() {
   echo "Executing promotion import"
+
+  local resources request
+  resources=$(jq '.resources' "$FID_GIT_CONFIG_DIR_PATH/report.json")
+  request=$(cat <<EOF
+{
+  "apply": true,
+  "resources": $resources,
+  "placeholders": {}
+}
+EOF
+)
+
+  execute_admin_request \
+    "/configuration_promotion/resources/import/git" \
+    -X POST \
+    -H 'Content-Type: application/json' \
+    -H 'Accept: application/json' \
+    -d "$request" \
+    1>/dev/null
+
+  echo "Promotion import executed successfully"
 }
 
 find_and_execute_operations() {
