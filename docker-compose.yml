@@ -80,6 +80,24 @@ services:
         limits:
           memory: 3000m
 
+  setup:
+    build:
+      context: ./docker/setup
+    image: homedepot-fid-setup:latest
+    container_name: fid-setup
+    platform: linux/amd64
+    networks:
+      - fidNetwork
+    volumes:
+      - '${FID_GIT_DATA_PATH}:/fid-git'
+      - '${INPUT_DIR_PATH}:/input'
+    profiles:
+      - setup
+    deploy:
+      resources:
+        limits:
+          memory: 128m
+
 networks:
   fidNetwork:
     driver: bridge
