@@ -180,6 +180,11 @@ execute_cert_import() {
   echo "All certificates imported, if necessary"
 }
 
+execute_datasource_update() {
+  local ds_files
+  ds_files=("$@")
+}
+
 find_and_execute_operations() {
   local promotion_needed
   promotion_needed=false
@@ -207,6 +212,12 @@ find_and_execute_operations() {
 
   if [ "$promotion_needed" == "true" ]; then
     execute_promotion_import
+  fi
+
+  local ds_files
+  ds_files="$(find "$INPUT_DIR" -maxdepth 1 -name 'iddm-promotion-datasource-*.sh')"
+  if [ -n "$ds_files" ]; then
+    execute_datasource_update "${ds_files[@]}"
   fi
 }
 
