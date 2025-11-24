@@ -290,6 +290,12 @@ find_and_execute_operations() {
     promotion_needed=true
   fi
 
+  local rename_files
+  mapfile -t rename_files < <(find "$INPUT_DIR" -maxdepth 1 -name 'iddm-promotion-rename-*.sh')
+  if [ "${#rename_files[@]}" -gt 0 ]; then
+    execute_rename_rdns "${rename_files[@]}"
+  fi
+
   local cert_files
   mapfile -t cert_files < <(find "$INPUT_DIR" -maxdepth 1 -name '*.pem')
   if [ "${#cert_files[@]}" -gt 0 ]; then
@@ -306,6 +312,12 @@ find_and_execute_operations() {
   if [ "${#ds_files[@]}" -gt 0 ]; then
     execute_datasource_update "${ds_files[@]}"
   fi
+}
+
+execute_rename_rdns() {
+  local rename_files
+  rename_files=("$@")
+  echo "TBD"
 }
 
 echo "Running Home Depot RadiantLogic IDDM Lite setup"
