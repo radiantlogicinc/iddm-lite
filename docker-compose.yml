@@ -91,6 +91,8 @@ services:
     volumes:
       - '${IDDM_DATA_ROOT}/git:/fid-git'
       - '${IDDM_DATA_ROOT}/setup:/input'
+    environment:
+      - FID_ADMIN_API_KEY=${FID_ADMIN_API_KEY}
     profiles:
       - setup
     deploy:

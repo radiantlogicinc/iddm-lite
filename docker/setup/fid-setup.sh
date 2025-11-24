@@ -37,10 +37,10 @@ execute_admin_request() {
   shift 1
 
   local fid_admin_base_url
-  fid_admin_base_url="$(get_fid_admin_base_url)"
+  fid_admin_base_url="https://$FID_ADMIN_HOST:$FID_ADMIN_PORT/v8/admin"
 
   curl -sSk --fail-with-body -w "\n%{http_code}" \
-    -H "x-api-key: $fid_admin_api_key" \
+    -H "x-api-key: $FID_ADMIN_API_KEY" \
     "$@" \
     "${fid_admin_base_url}${uri}" > .response_temp 2>&1 \
     || true
