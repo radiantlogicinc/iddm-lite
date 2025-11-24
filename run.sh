@@ -13,7 +13,7 @@ check_for_env_files() {
 
 get_command() {
   if [ $# -ne 1 ]; then
-    echo "Must specify command: start, stop, or setup" >&2
+    echo "Must specify command: start, stop, build, or setup" >&2
     exit 1
   fi
 
@@ -21,7 +21,7 @@ get_command() {
 }
 
 start() {
-  echo "Starting RadiantLogic IDDM-Lite (FID & Zookeeper) application"
+  echo "Starting RadiantLogic IDDM-Lite application"
 
   docker compose \
     --profile fid \
@@ -30,7 +30,7 @@ start() {
 }
 
 stop() {
-  echo "Stopping RadiantLogic IDDM-Lite (FID & Zookeeper) application"
+  echo "Stopping RadiantLogic IDDM-Lite application"
 
   docker compose \
     "${ENV_FILE_ARGS[@]}" \
@@ -42,6 +42,16 @@ setup() {
   echo "TBD"
 }
 
+build() {
+  echo "(Re-)Building RadiantLogic IDDM-Lite images"
+
+  docker compose \
+      "${ENV_FILE_ARGS[@]}" \
+      --profile fid \
+      --profile setup \
+      build
+}
+
 check_for_env_files
 command="$(get_command "$@")"
 
@@ -49,4 +59,5 @@ case "$command" in
   start) start ;;
   stop) stop ;;
   setup) setup ;;
+  build) build ;;
 esac
