@@ -61,6 +61,11 @@ execute_admin_request() {
 stage_promotion_from_git() {
   echo "Staging promotion data from git repo"
 
+  if [ ! -f "$INPUT_PROMOTION_GIT_FILE" ]; then
+    echo "Cannot find $INPUT_PROMOTION_GIT_FILE, aborting" >&2
+    exit 1
+  fi
+
   . "$INPUT_PROMOTION_GIT_FILE"
 
   if [ ! -d "$HOME/.ssh" ]; then
@@ -84,6 +89,11 @@ stage_promotion_from_git() {
 
 stage_promotion_from_zip() {
   echo "Staging promotion data from zip file"
+
+  if [ ! -f "$INPUT_PROMOTION_ZIP_FILE" ]; then
+    echo "Cannot find $INPUT_PROMOTION_ZIP_FILE, aborting" >&2
+    exit 1
+  fi
 
   if [ -d "$FID_GIT_CONFIG_DIR_PATH" ]; then
     rm -rf "$FID_GIT_CONFIG_DIR_PATH"
