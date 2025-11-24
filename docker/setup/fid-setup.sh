@@ -10,6 +10,7 @@ FID_GIT_DIR_PATH=/fid-git
 FID_GIT_CONFIG_DIR_PATH="$FID_GIT_DIR_PATH/config"
 INPUT_PROMOTION_GIT_FILE="$INPUT_DIR/iddm-promotion-git.sh"
 INPUT_PROMOTION_ZIP_FILE="$INPUT_DIR/iddm-promotion.zip"
+RDN_REGEX="^(.+)=(.+)$"
 
 wait_for_fid() {
   for ((i=1; i<=100; i++)); do
@@ -314,6 +315,46 @@ find_and_execute_operations() {
   fi
 }
 
+get_rdn_key() {
+  local rdn
+  rdn="$1"
+
+  apply_rdn_regex "$rdn"
+  echo "${BASH_REMATCH[1]}"
+}
+
+apply_rdn_regex() {
+  local rdn
+  rdn="$1"
+
+  if [[ ! "$rdn" =~ $RDN_REGEX ]]; then
+    echo "Invalid RDN: $rdn" >&2
+    exit 1
+  fi
+}
+
+get_rdn_value() {
+  local rdn
+  rdn="$1"
+
+  apply_rdn_regex "$rdn"
+  echo "${BASH_REMATCH[2]}"
+}
+
+rename_rdn() {
+  echo "Renaming RDN $SOURCE_RDN to $TARGET_RDN"
+
+  local target_rdn_key target_rdn_value source_rdn_key source_rdn_value
+  target_rdn_key="$(get_rdn_key "$TARGET_RDN")"
+  target_rdn_value="$(get_rdn_value "$TARGET_RDN")"
+  source_rdn_key="$(get_rdn_key "$SOURCE_RDN")"
+  source_rdn_value="$(get_rdn_value "$SOURCE_RDN")"
+
+  local normalized_target_rdn normalized_source_rdn
+  normalized_target_rdn="$(normalize_rdn "$TARGET_RDN")"
+  normalized_source_rdn="$(normalize_rdn "$SOURCE_RDN")"
+}
+
 execute_rename_rdns() {
   local rename_files
   rename_files=("$@")
@@ -322,6 +363,10 @@ execute_rename_rdns() {
 
   for file in "${rename_files[@]}"; do
     echo "Performing RDN rename for $file"
+    (
+      . "$file"
+      rename_rdn
+    )
   done
 
   echo "RDN rename operations complete"
