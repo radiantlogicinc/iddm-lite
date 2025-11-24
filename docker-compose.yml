@@ -74,8 +74,8 @@ services:
       - CP_SERVER_JOPTS=-Xmx250m
       - USE_CONTROL_PANEL=false
     volumes:
-      - '${FID_DATA_PATH}:/opt/radiantone/vds'
-      - '${FID_GIT_DATA_PATH}:/opt/radiantone/git'
+      - '${IDDM_DATA_ROOT}/fid/vds:/opt/radiantone/vds'
+      - '${IDDM_DATA_ROOT}/git:/opt/radiantone/git'
     deploy:
       resources:
         limits:
