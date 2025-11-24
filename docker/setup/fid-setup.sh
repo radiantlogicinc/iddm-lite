@@ -9,6 +9,8 @@ INPUT_DIR=/input
 FID_GIT_DIR_PATH=/fid-git
 FID_GIT_CONFIG_DIR_PATH="$FID_GIT_DIR_PATH/config"
 
+promotion_needed=false
+
 wait_for_fid() {
   for ((i=1; i<=100; i++)); do
     echo "Waiting for FID to be ready..."
@@ -50,6 +52,8 @@ stage_promotion_from_git() {
     cd "$FID_GIT_CONFIG_DIR_PATH"
     git checkout "$GIT_BRANCH"
   )
+
+  promotion_needed=true
 }
 
 stage_promotion_from_zip() {
@@ -63,6 +67,11 @@ stage_promotion_from_zip() {
   fi
 
   unzip -q "/input/$file" -d "$FID_GIT_CONFIG_DIR_PATH"
+  promotion_needed=true
+}
+
+execute_promotion_import() {
+  echo "Executing promotion import"
 }
 
 find_and_execute_operations() {
@@ -77,6 +86,10 @@ find_and_execute_operations() {
       ;;
     esac
   done
+
+  if [ "$promotion_needed" == "true" ]; then
+    execute_promotion_import
+  fi
 }
 
 echo "Running Home Depot RadiantLogic IDDM Lite setup"
