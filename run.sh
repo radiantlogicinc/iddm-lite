@@ -43,7 +43,6 @@ setup() {
 
   docker compose \
     "${ENV_FILE_ARGS[@]}" \
-    --profile fid \
     --profile setup \
     up \
     --menu=false
