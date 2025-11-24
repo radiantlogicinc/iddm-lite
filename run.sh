@@ -29,7 +29,13 @@ start() {
 }
 
 stop() {
-  echo "TBD"
+  echo "Stopping RadiantLogic IDDM-Lite (FID & Zookeeper) application"
+
+  docker compose \
+    --env-file .env \
+    --env-file .env-server \
+    --profile fid \
+    stop
 }
 
 setup() {
