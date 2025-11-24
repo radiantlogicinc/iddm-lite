@@ -50,12 +50,13 @@ setup() {
 }
 
 build() {
+  local profile
+  profile="$1"
   echo "(Re-)Building RadiantLogic IDDM-Lite images"
 
   docker compose \
     "${ENV_FILE_ARGS[@]}" \
-    --profile fid \
-    --profile setup \
+    --profile "$profile" \
     build
 }
 
@@ -66,5 +67,6 @@ case "$command" in
   start) start ;;
   stop) stop ;;
   setup) setup ;;
-  build) build ;;
+  build-iddm) build fid ;;
+  build-setup) build setup ;;
 esac
