@@ -1,4 +1,4 @@
-ARG IDDM_VERSION='8.1.5-rc.1'
+ARG IDDM_VERSION
 
 FROM radiantone/fid-nightly:$IDDM_VERSION
 
