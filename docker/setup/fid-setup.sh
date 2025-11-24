@@ -193,7 +193,19 @@ execute_database_datasource_update() {
   local data_source
   data_source=$(execute_admin_request \
     "/data_sources/$uri_encoded_name")
-  echo "TBD"
+
+  data_source=$(echo -n "$data_source" | jq --arg jdbc_url "$JDBC_URL" '.url = $jdbc_url')
+  data_source=$(echo -n "$data_source" | jq --arg username "USERNAME" '.username = $username')
+  data_source=$(echo -n "$data_source" | jq --arg password "$PASSWORD" '.password = $password')
+
+  execute_admin_request \
+    "/data_sources/$uri_encoded_name" \
+    -X PUT \
+    -H 'Content-Type: application/json' \
+    -d "$data_source" \
+    1>/dev/null
+
+  echo "Datasource configured successfully"
 }
 
 execute_ldap_datasource_update() {
