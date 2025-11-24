@@ -1,7 +1,7 @@
 FROM debian:12.9-slim
 
 RUN apt update && \
-    apt install openssl jq libxml2-utils xmlstarlet unzip curl xxd netcat-traditional -y && \
+    apt install openssl jq libxml2-utils xmlstarlet unzip curl xxd netcat-traditional git -y && \
     apt clean && \
     rm -rf /var/lib/apt/lists/*
 

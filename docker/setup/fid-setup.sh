@@ -76,7 +76,7 @@ stage_promotion_from_git() {
     rm -rf "$FID_GIT_CONFIG_DIR_PATH"
   fi
 
-  echo "$GIT_SSH_KEY_BASE64" | base64 -D > "$HOME/.ssh/id_key"
+  echo "$GIT_SSH_KEY_BASE64" | base64 -d > "$HOME/.ssh/id_key"
   git clone "$GIT_REPO" "$FID_GIT_CONFIG_DIR_PATH"
 
   (
