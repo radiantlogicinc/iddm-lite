@@ -181,6 +181,18 @@ execute_cert_import() {
   echo "All certificates imported, if necessary"
 }
 
+execute_database_datasource_update() {
+  local ds_name
+  ds_name="$1"
+
+
+  echo "TBD"
+}
+
+execute_ldap_datasource_update() {
+  echo "TBD"
+}
+
 execute_datasource_update() {
   local ds_files
   ds_files=("$@")
@@ -194,7 +206,17 @@ execute_datasource_update() {
 
     local ds_name
     ds_name="${BASH_REMATCH[1]}"
-    echo "NAME $ds_name"
+    (
+      . "$file"
+      case "$CATEGORY" in
+        ldap) execute_ldap_datasource_update "$ds_name" ;;
+        database) execute_database_datasource_update "$ds_name" ;;
+        *)
+          echo "Invalid category: $CATEGORY" >&2
+          exit 1
+        ;;
+      esac
+    )
   done
 }
 
