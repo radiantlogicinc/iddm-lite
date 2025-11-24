@@ -6,6 +6,8 @@ trap 'echo "fid-setup.sh: Error occurred at line $LINENO, aborting"; exit 1' ERR
 FID_ADMIN_HOST=fid
 FID_ADMIN_PORT=9101
 INPUT_DIR=/input
+FID_GIT_DIR_PATH=/fid-git
+FID_GIT_CONFIG_DIR_PATH="$FID_GIT_DIR_PATH/config"
 
 wait_for_fid() {
   for ((i=1; i<=100; i++)); do
@@ -25,9 +27,11 @@ wait_for_fid() {
   exit 1
 }
 
-execute_promotion_from_git() {
+stage_promotion_from_git() {
   local file
   file="$1"
+
+  echo "Staging promotion data from git repo"
 
   . "$INPUT_DIR/$file"
 
@@ -35,28 +39,38 @@ execute_promotion_from_git() {
     mkdir -p "$HOME/.ssh"
   fi
 
+  if [ -d "$FID_GIT_CONFIG_DIR_PATH" ]; then
+    rm -rf "$FID_GIT_CONFIG_DIR_PATH"
+  fi
+
   echo "$GIT_SSH_KEY" | base64 -D > "$HOME/.ssh/id_key"
-  git clone "$GIT_REPO" /fid-git/config
+  git clone "$GIT_REPO" "$FID_GIT_CONFIG_DIR_PATH"
 
   (
-    cd /fid-git/config
+    cd "$FID_GIT_CONFIG_DIR_PATH"
     git checkout "$GIT_BRANCH"
   )
-  echo "TBD"
 }
 
-execute_promotion_from_zip() {
+stage_promotion_from_zip() {
   local file
   file="$1"
-  echo "TBD"
+
+  echo "Staging promotion data from zip file"
+
+  if [ -d "$FID_GIT_CONFIG_DIR_PATH" ]; then
+    rm -rf "$FID_GIT_CONFIG_DIR_PATH"
+  fi
+
+  unzip -q "/input/$file" -d "$FID_GIT_CONFIG_DIR_PATH"
 }
 
 find_and_execute_operations() {
   find "$INPUT_DIR" -maxdepth 1 -mindepth 1 -name 'iddm-*' | while read -r file; do
     echo "Executing operation for $file"
     case "$file" in
-      iddm-promotion-git.sh) execute_promotion_from_git "$file" ;;
-      iddm-promotion.zip) execute_promotion_from_zip "$file" ;;
+      iddm-promotion-git.sh) stage_promotion_from_git "$file" ;;
+      iddm-promotion.zip) stage_promotion_from_zip "$file" ;;
       *)
         echo "Unknown operation file: $file" >&2
         exit 1
