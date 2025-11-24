@@ -59,7 +59,7 @@ services:
       - ZK=external
       - ZK_CLUSTER=homedepot-store
       - ZK_CONN_STR=zookeeper:2181
-      - RADIANT_LICENSE=${LICENSE}
+      - RADIANT_LICENSE=${IDDM_LICENSE}
       - FID_REVISION_UPDATE=true
       - FID_SERVER_JOPTS=-Xms1g -Xmx2250m
       - INSTALL_SAMPLES=false
