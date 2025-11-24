@@ -1,3 +1,4 @@
 1. Document the .env-server structure and options
 2. Document the data directory structure
 3. Document upgrade process
+4. Document how to use the setup for different resources
