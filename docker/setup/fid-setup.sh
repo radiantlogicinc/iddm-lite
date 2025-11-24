@@ -341,6 +341,98 @@ get_rdn_value() {
   echo "${BASH_REMATCH[2]}"
 }
 
+generate_mapping_hash() {
+  local pipeline_id
+  pipeline_id="$1"
+
+  local binary_digest
+  binary_digest=$(echo -n "$pipeline_id" | openssl dgst -sha256 -binary)
+
+  local hex_string
+  hex_string=$(echo -n "$binary_digest" | xxd -p | tr -d '\n')
+
+  if [ "${#hex_string}" -lt 64 ]; then
+    # This is in the original ROS code to correct against a length risk
+    hex_string="0${hex_string}"
+  fi
+
+  echo "${hex_string:0:16}"
+}
+
+fix_mapping_hashes() {
+  local normalized_actual_rdn normalized_staging_rdn
+  normalized_staging_rdn="$1"
+  normalized_actual_rdn="$2"
+
+  local report_file
+  report_file="$FID_GIT_CONFIG_DIR_PATH/report.json"
+  if [ ! -f "$report_file" ]; then
+    echo "Cannot find report.json in config data, aborting" >&2
+    exit 1
+  fi
+
+  local mapping_resources
+  readarray -t mapping_resources = < <(jq -r '.resources | keys[] | select(startswith("mappings"))' "$report_file")
+
+  for resource in "${mapping_resources[@]}"; do
+    local pipeline_id new_pipeline_id hash new_hash
+
+    pipeline_id="${resource#mappings_}"
+    hash="$(generate_mapping_hash "$pipeline_id")"
+
+    new_pipeline_id="${pipeline_id//$normalized_staging_rdn/$normalized_actual_rdn}"
+    new_hash="$(generate_mapping_hash "$new_pipeline_id")"
+
+    mv "$FID_GIT_CONFIG_DIR_PATH/file/vds_server/conf/sync/mappings/$hash" \
+      "$FID_GIT_CONFIG_DIR_PATH/file/vds_server/conf/sync/mappings/$new_hash"
+
+    sed -i "s/mappings\/$hash\/mappings\.json/mappings\/$new_hash\/mappings.json/g" "$report_file"
+  done
+}
+
+# This does not touch .dvx content because some of the replacement expressions may not be as safe for other file types
+find_and_replace_rdn() {
+  local existing replacement
+  existing="$1"
+  replacement="$2"
+
+  find "$FID_GIT_CONFIG_DIR_PATH" \
+    -type f \
+    \( -not -name '*.jar' -o -not -name '*.dvx' \) \
+    -print0 | \
+    xargs -0 -I {} sed -i "s/$existing/$replacement/g" {}
+
+  while read -r file; do
+    local transformed_file
+    transformed_file="${file//"$existing"/"$replacement"}"
+
+    if [ "$file" != "$transformed_file" ]; then
+      local dir
+      dir="$(dirname "$transformed_file")"
+      if [ ! -d "$dir" ]; then
+        mkdir -p "$dir"
+      fi
+      mv "$file" "$transformed_file"
+    fi
+  done < <(find "$FID_GIT_CONFIG_DIR_PATH" -type f -not -name '*.jar')
+}
+
+replace_rdn_in_dvx() {
+  local actual_rdn_key actual_rdn_value staging_rdn_key staging_rdn_value
+  file="$1"
+  staging_rdn_key="$2"
+  staging_rdn_value="$3"
+  actual_rdn_key="$4"
+  actual_rdn_value="$5"
+
+  # Each of the find/replace operations are done sequentially, so each one needs to reflect the changes from the prior one in its xpath
+  xmlstarlet ed -L \
+    -u "//Node[@Name = \"$staging_rdn_key\" and @Definition = \"$staging_rdn_value\"]/@Name" -v "$actual_rdn_key" \
+    -u "//Node[@Name = \"$actual_rdn_key\" and @Definition = \"$staging_rdn_value\"]/@Definition" -v "$actual_rdn_value" \
+    -u "//Node[@Name = \"$actual_rdn_key\" and @Definition = \"$actual_rdn_value\"]/@TypeName" -v "${actual_rdn_key}[$actual_rdn_value]" \
+    "$file"
+}
+
 rename_rdn() {
   echo "Renaming RDN $SOURCE_RDN to $TARGET_RDN"
 
