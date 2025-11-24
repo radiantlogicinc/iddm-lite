@@ -23,6 +23,8 @@ start() {
 
   docker compose \
     --profile fid \
+    --env-file .env \
+    --env-file .env-server \
     up -d
 }
 
