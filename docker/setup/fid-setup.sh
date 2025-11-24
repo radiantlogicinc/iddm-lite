@@ -418,18 +418,18 @@ find_and_replace_rdn() {
 }
 
 replace_rdn_in_dvx() {
-  local actual_rdn_key actual_rdn_value staging_rdn_key staging_rdn_value
+  local target_rdn_key target_rdn_value source_rdn_key source_rdn_value
   file="$1"
-  staging_rdn_key="$2"
-  staging_rdn_value="$3"
-  actual_rdn_key="$4"
-  actual_rdn_value="$5"
+  source_rdn_key="$2"
+  source_rdn_value="$3"
+  target_rdn_key="$4"
+  target_rdn_value="$5"
 
   # Each of the find/replace operations are done sequentially, so each one needs to reflect the changes from the prior one in its xpath
   xmlstarlet ed -L \
-    -u "//Node[@Name = \"$staging_rdn_key\" and @Definition = \"$staging_rdn_value\"]/@Name" -v "$actual_rdn_key" \
-    -u "//Node[@Name = \"$actual_rdn_key\" and @Definition = \"$staging_rdn_value\"]/@Definition" -v "$actual_rdn_value" \
-    -u "//Node[@Name = \"$actual_rdn_key\" and @Definition = \"$actual_rdn_value\"]/@TypeName" -v "${actual_rdn_key}[$actual_rdn_value]" \
+    -u "//Node[@Name = \"$source_rdn_key\" and @Definition = \"$source_rdn_value\"]/@Name" -v "$target_rdn_key" \
+    -u "//Node[@Name = \"$target_rdn_key\" and @Definition = \"$source_rdn_value\"]/@Definition" -v "$target_rdn_value" \
+    -u "//Node[@Name = \"$target_rdn_key\" and @Definition = \"$target_rdn_value\"]/@TypeName" -v "${target_rdn_key}[$target_rdn_value]" \
     "$file"
 }
 
