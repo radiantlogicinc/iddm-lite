@@ -19,7 +19,11 @@ get_command() {
 }
 
 start() {
-  echo "TBD"
+  echo "Starting RadiantLogic IDDM-Lite (FID & Zookeeper) application"
+
+  docker compose \
+    --profile fid \
+    up -d
 }
 
 stop() {
