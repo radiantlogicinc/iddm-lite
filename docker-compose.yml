@@ -32,12 +32,53 @@ services:
         limits:
           memory: 512m
 
-#  fid:
-#    build:
-#      context: ./docker/zk
-#      args:
-#        - IDDM_VERSION=${IDDM_VERSION}
-#    image: radiantone/homedepot-fid:${IDDM_VERSION}
+  fid:
+    build:
+      context: ./docker/zk
+      args:
+        - IDDM_VERSION=${IDDM_VERSION}
+    image: radiantone/homedepot-fid:${IDDM_VERSION}
+    container_name: fid
+    hostname: fid-0
+    networks:
+      - fidNetwork
+    profiles:
+      - fid
+    ports:
+      - '7070:7070'
+      - '7171:7171'
+      - '9100:9100'
+      - '9101:9101'
+      - '2389:2389'
+      - '2636:2636'
+      - '8089:8089'
+      - '8090:8090'
+    environment:
+      - GIT_DIRECTORY=/opt/radiantone/git
+      - IDDM_SERVICE_ACCOUNT_USERNAME=cn=api-service-user,ou=ServiceUsers,cn=config
+      - ZK=external
+      - ZK_CLUSTER=homedepot-store
+      - ZK_CONN_STR=zookeeper:2181
+      - RADIANT_LICENSE=${LICENSE}
+      - FID_REVISION_UPDATE=true
+      - FID_SERVER_JOPTS=-Xms1g -Xmx2250m
+      - INSTALL_SAMPLES=false
+      - FID_ADMIN_API_KEY=${FID_ADMIN_API_KEY}
+      - ZK_PASSWORD=${ZK_PASSWORD}
+      - ZK_USERNAME=${ZK_USERNAME}
+      - FID_ROOT_USERNAME=$DIRECTORY_MANAGER_BIND_DN
+      - FID_ROOT_PASSWORD=$DIRECTORY_MANAGER_BIND_PASSWORD
+      - RLI_SCHEDULER_JOPTS=-Xmx250m
+      - RLI_SYNC_REALTIME_JOPTS=-Xmx128m
+      - CP_SERVER_JOPTS=-Xmx250m
+      - USE_CONTROL_PANEL=false
+    volumes:
+      - '${FID_DATA_PATH}:/opt/radiantone/vds'
+      - '${FID_GIT_DATA_PATH}:/opt/radiantone/git'
+    deploy:
+      resources:
+        limits:
+          memory: 3000m
 
 networks:
   fidNetwork:
