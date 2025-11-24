@@ -36,10 +36,10 @@ execute_promotion_from_git() {
   fi
 
   echo "$GIT_SSH_KEY" | base64 -D > "$HOME/.ssh/id_key"
-  git clone "$GIT_REPO" /repo
+  git clone "$GIT_REPO" /fid-git/config
 
   (
-    cd /repo
+    cd /fid-git/config
     git checkout "$GIT_BRANCH"
   )
   echo "TBD"
