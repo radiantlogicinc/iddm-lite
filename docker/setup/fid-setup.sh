@@ -188,7 +188,7 @@ execute_database_datasource_update() {
   echo "Configuring Database datasource"
 
   local uri_encoded_name
-  uri_encoded_name=$(echo -n "$homedepot_central_name" | jq -sRr @uri)
+  uri_encoded_name=$(echo -n "$ds_name" | jq -sRr @uri)
 
   local data_source
   data_source=$(execute_admin_request \
