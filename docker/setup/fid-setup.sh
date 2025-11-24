@@ -8,8 +8,8 @@ FID_ADMIN_PORT=9101
 INPUT_DIR=/input
 FID_GIT_DIR_PATH=/fid-git
 FID_GIT_CONFIG_DIR_PATH="$FID_GIT_DIR_PATH/config"
-
-promotion_needed=false
+INPUT_PROMOTION_GIT_FILE="$INPUT_DIR/iddm-promotion-git.sh"
+INPUT_PROMOTION_ZIP_FILE="$INPUT_DIR/iddm-promotion.zip"
 
 wait_for_fid() {
   for ((i=1; i<=100; i++)); do
@@ -30,12 +30,9 @@ wait_for_fid() {
 }
 
 stage_promotion_from_git() {
-  local file
-  file="$1"
-
   echo "Staging promotion data from git repo"
 
-  . "$INPUT_DIR/$file"
+  . "$INPUT_PROMOTION_GIT_FILE"
 
   if [ ! -d "$HOME/.ssh" ]; then
     mkdir -p "$HOME/.ssh"
@@ -57,17 +54,14 @@ stage_promotion_from_git() {
 }
 
 stage_promotion_from_zip() {
-  local file
-  file="$1"
-
   echo "Staging promotion data from zip file"
 
   if [ -d "$FID_GIT_CONFIG_DIR_PATH" ]; then
     rm -rf "$FID_GIT_CONFIG_DIR_PATH"
   fi
 
-  unzip -q "/input/$file" -d "$FID_GIT_CONFIG_DIR_PATH"
-  promotion_needed=true
+  unzip -q "$INPUT_PROMOTION_ZIP_FILE" -d "$FID_GIT_CONFIG_DIR_PATH"
+
 }
 
 execute_promotion_import() {
@@ -75,17 +69,23 @@ execute_promotion_import() {
 }
 
 find_and_execute_operations() {
-  find "$INPUT_DIR" -maxdepth 1 -mindepth 1 -name 'iddm-*' | while read -r file; do
-    echo "Executing operation for $file"
-    case "$file" in
-      iddm-promotion-git.sh) stage_promotion_from_git "$file" ;;
-      iddm-promotion.zip) stage_promotion_from_zip "$file" ;;
-      *)
-        echo "Unknown operation file: $file" >&2
-        exit 1
-      ;;
-    esac
-  done
+  local promotion_needed
+  promotion_needed=false
+
+  if [ -f "$INPUT_PROMOTION_GIT_FILE" ] && [ -f "$INPUT_PROMOTION_ZIP_FILE" ]; then
+    echo "Cannot configure both a git & zip promotion simultaneously" >&2
+    exit 1
+  fi
+
+  if [ -f "$INPUT_PROMOTION_GIT_FILE" ]; then
+    stage_promotion_from_git
+    promotion_needed=true
+  fi
+
+  if [ -f "$INPUT_PROMOTION_ZIP_FILE" ]; then
+    stage_promotion_from_zip
+    promotion_needed=true
+  fi
 
   if [ "$promotion_needed" == "true" ]; then
     execute_promotion_import
