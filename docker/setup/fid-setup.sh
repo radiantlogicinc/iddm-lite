@@ -219,7 +219,7 @@ find_and_execute_operations() {
 
   local cert_files
   mapfile -t cert_files < <(find "$INPUT_DIR" -maxdepth 1 -name '*.pem')
-  if [ -n "$cert_files" ]; then
+  if [ "${#cert_files[@]}" -gt 0 ]; then
     execute_cert_import "${cert_files[@]}"
   fi
 
@@ -229,7 +229,7 @@ find_and_execute_operations() {
 
   local ds_files
   mapfile -t ds_files < <(find "$INPUT_DIR" -maxdepth 1 -name 'iddm-promotion-datasource-*.sh')
-  if [ -n "$ds_files" ]; then
+  if [ "${#ds_files[@]}" -gt 0 ]; then
     execute_datasource_update "${ds_files[@]}"
   fi
 }
