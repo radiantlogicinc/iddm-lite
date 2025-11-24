@@ -190,6 +190,8 @@ execute_database_datasource_update() {
   local uri_encoded_name
   uri_encoded_name=$(echo -n "$ds_name" | jq -sRr @uri)
 
+  echo "Loading existing datasource data"
+
   local data_source
   data_source=$(execute_admin_request \
     "/data_sources/$uri_encoded_name")
@@ -197,6 +199,8 @@ execute_database_datasource_update() {
   data_source=$(echo -n "$data_source" | jq --arg jdbc_url "$JDBC_URL" '.url = $jdbc_url')
   data_source=$(echo -n "$data_source" | jq --arg username "USERNAME" '.username = $username')
   data_source=$(echo -n "$data_source" | jq --arg password "$PASSWORD" '.password = $password')
+
+  echo "Updating datasource data"
 
   execute_admin_request \
     "/data_sources/$uri_encoded_name" \
@@ -217,6 +221,8 @@ execute_ldap_datasource_update() {
   local uri_encoded_name
   uri_encoded_name=$(echo -n "$ds_name" | jq -sRr @uri)
 
+  echo "Loading existing datasource data"
+
   local data_source
   data_source=$(execute_admin_request \
     "/data_sources/$uri_encoded_name")
@@ -226,6 +232,8 @@ execute_ldap_datasource_update() {
   data_source=$(echo -n "$data_source" | jq --arg tls "$IS_SSL" '.ssl = $tls')
   data_source=$(echo -n "$data_source" | jq --arg user "$BIND_DN" '.bindDn = $user')
   data_source=$(echo -n "$data_source" | jq --arg password "$BIND_PASSWORD" '.password = $password')
+
+  echo "Updating datasource data"
 
   execute_admin_request \
     "/data_sources/$uri_encoded_name" \
