@@ -29,6 +29,35 @@ wait_for_fid() {
   exit 1
 }
 
+# The first argument is the URI to be appended to the FID admin base url
+# All other arguments are passed directly to curl
+execute_admin_request() {
+  local uri
+  uri="$1"
+  shift 1
+
+  local fid_admin_base_url
+  fid_admin_base_url="$(get_fid_admin_base_url)"
+
+  curl -sSk --fail-with-body -w "\n%{http_code}" \
+    -H "x-api-key: $fid_admin_api_key" \
+    "$@" \
+    "${fid_admin_base_url}${uri}" > .response_temp 2>&1 \
+    || true
+
+  status_code=$(tail -n1 < .response_temp)
+  response_body=$(sed '$d' < .response_temp)
+  rm .response_temp
+
+  if [[ ! "$status_code" =~ ^[0-9]+$ ]] || [ "$status_code" -ge 400 ] || [[ "$status_code" =~ ^0+$ ]]; then
+    echo "Operation failed with HTTP status code '$status_code', please inspect the following response output and try again" >&2
+    echo "$response_body" >&2
+    exit 1
+  fi
+
+  echo "$response_body"
+}
+
 stage_promotion_from_git() {
   echo "Staging promotion data from git repo"
 
