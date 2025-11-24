@@ -110,6 +110,15 @@ stage_promotion_from_zip() {
   fi
 
   unzip -q "$INPUT_PROMOTION_ZIP_FILE" -d "$FID_GIT_CONFIG_DIR_PATH"
+  if [ ! -f "$FID_GIT_CONFIG_DIR_PATH/report.json" ] && [ -f "$FID_GIT_CONFIG_DIR_PATH/*/report.json" ]; then
+    echo "Fixing output structure after unzip"
+    cp -R "$FID_GIT_CONFIG_DIR_PATH/*" "$FID_GIT_CONFIG_DIR_PATH"
+  fi
+
+  if [ ! -f "$FID_GIT_CONFIG_DIR_PATH/report.json" ]
+    echo "Promotion data is invalid, cannot proceed" >&2
+    exit 1
+  fi
   echo "Promotion data staged successfully"
 }
 
