@@ -115,7 +115,7 @@ stage_promotion_from_zip() {
     cp -R "$FID_GIT_CONFIG_DIR_PATH/*" "$FID_GIT_CONFIG_DIR_PATH"
   fi
 
-  if [ ! -f "$FID_GIT_CONFIG_DIR_PATH/report.json" ]
+  if [ ! -f "$FID_GIT_CONFIG_DIR_PATH/report.json" ]; then
     echo "Promotion data is invalid, cannot proceed" >&2
     exit 1
   fi
