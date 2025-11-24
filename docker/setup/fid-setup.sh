@@ -70,6 +70,7 @@ stage_promotion_from_git() {
 
   if [ ! -d "$HOME/.ssh" ]; then
     mkdir -p "$HOME/.ssh"
+    chmod 700 ~/.ssh
   fi
 
   cat <<EOF > "$HOME/.ssh/config"
@@ -83,6 +84,7 @@ EOF
   fi
 
   echo "$GIT_SSH_KEY_BASE64" | base64 -d > "$HOME/.ssh/id_key"
+  chmod 600 ~/.ssh/id_key
   git clone "$GIT_REPO" "$FID_GIT_CONFIG_DIR_PATH"
 
   (
