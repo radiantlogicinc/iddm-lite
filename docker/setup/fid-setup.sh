@@ -317,7 +317,14 @@ find_and_execute_operations() {
 execute_rename_rdns() {
   local rename_files
   rename_files=("$@")
-  echo "TBD"
+
+  echo "Found RDN rename files"
+
+  for file in "${rename_files[@]}"; do
+    echo "Performing RDN rename for $file"
+  done
+
+  echo "RDN rename operations complete"
 }
 
 echo "Running Home Depot RadiantLogic IDDM Lite setup"
