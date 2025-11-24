@@ -197,7 +197,7 @@ execute_database_datasource_update() {
     "/data_sources/$uri_encoded_name")
 
   data_source=$(echo -n "$data_source" | jq --arg jdbc_url "$JDBC_URL" '.url = $jdbc_url')
-  data_source=$(echo -n "$data_source" | jq --arg username "USERNAME" '.username = $username')
+  data_source=$(echo -n "$data_source" | jq --arg username "$USERNAME" '.username = $username')
   data_source=$(echo -n "$data_source" | jq --arg password "$PASSWORD" '.password = $password')
 
   echo "Updating datasource data"
