@@ -147,6 +147,39 @@ EOF
   echo "Promotion import executed successfully"
 }
 
+execute_cert_import() {
+  local cert_files
+  cert_files=("$@")
+
+  echo "Found certificates to import, importing them if they do not already exist"
+
+  local existing_certs
+  existing_certs=$(execute_admin_request \
+    /config/security/client_certificate_truststore)
+
+  for cert_file in "${cert_files[@]}"; do
+    local base_name exists
+    base_name=$(basename -s .pem "$cert_file")
+    exists=$(jq --arg name "$base_name" '. | index($name)' <<< "$existing_certs")
+    if [ "$exists" != null ]; then
+      echo "Certificate already exists: $cert_file"
+      continue
+    fi
+
+    echo "Importing certificate $cert_file"
+
+    execute_admin_request \
+      "/config/security/client_certificate_truststore?alias=$base_name" \
+      -X POST \
+      -F "file=@${cert_file};name=$base_name" \
+      1>/dev/null
+
+    echo "Import certificate successful"
+  done
+
+  echo "All certificates imported, if necessary"
+}
+
 find_and_execute_operations() {
   local promotion_needed
   promotion_needed=false
@@ -164,6 +197,12 @@ find_and_execute_operations() {
   if [ -f "$INPUT_PROMOTION_ZIP_FILE" ]; then
     stage_promotion_from_zip
     promotion_needed=true
+  fi
+
+  local cert_files
+  cert_files="$(find "$INPUT_DIR" -maxdepth 1 -name '*.pem')"
+  if [ -n "$cert_files" ]; then
+    execute_cert_import "${cert_files[@]}"
   fi
 
   if [ "$promotion_needed" == "true" ]; then
