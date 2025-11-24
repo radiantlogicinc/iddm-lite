@@ -224,3 +224,4 @@ find_and_execute_operations() {
 echo "Running Home Depot RadiantLogic IDDM Lite setup"
 wait_for_fid
 find_and_execute_operations
+echo "Home Depot RadiantLogic IDDM Lite setup complete"
