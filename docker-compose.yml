@@ -8,6 +8,8 @@ services:
     platform: linux/amd64
     container_name: zookeeper
     hostname: zookeeper-0
+    env_file:
+      - .env-server
     networks:
       - fidNetwork
     profiles:
