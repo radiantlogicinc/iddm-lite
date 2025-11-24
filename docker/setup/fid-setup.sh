@@ -353,6 +353,11 @@ rename_rdn() {
   local normalized_target_rdn normalized_source_rdn
   normalized_target_rdn="$(normalize_rdn "$TARGET_RDN")"
   normalized_source_rdn="$(normalize_rdn "$SOURCE_RDN")"
+
+  fix_mapping_hashes "$normalized_source_rdn" "$normalized_target_rdn"
+  find_and_replace_rdn "$normalized_source_rdn" "$normalized_target_rdn"
+  find_and_replace_rdn "$SOURCE_RDN" "$TARGET_RDN"
+  find_and_replace_rdn_in_dvx "$source_rdn_key" "$source_rdn_value" "$target_rdn_key" "$target_rdn_value"
 }
 
 execute_rename_rdns() {
