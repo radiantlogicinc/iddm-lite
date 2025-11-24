@@ -39,17 +39,24 @@ stop() {
 }
 
 setup() {
-  echo "TBD"
+  echo "Running RadiantLogic IDDM-Lite setup"
+
+  docker compose \
+    "${ENV_FILE_ARGS[@]}" \
+    --profile fid \
+    --profile setup \
+    up \
+    --menu=false
 }
 
 build() {
   echo "(Re-)Building RadiantLogic IDDM-Lite images"
 
   docker compose \
-      "${ENV_FILE_ARGS[@]}" \
-      --profile fid \
-      --profile setup \
-      build
+    "${ENV_FILE_ARGS[@]}" \
+    --profile fid \
+    --profile setup \
+    build
 }
 
 check_for_env_files
