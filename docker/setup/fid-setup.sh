@@ -26,10 +26,23 @@ wait_for_fid() {
 }
 
 execute_promotion_from_git() {
+  local file
+  file="$1"
+
+  . "$INPUT_DIR/$file"
+
+  if [ ! -d "$HOME/.ssh" ]; then
+    mkdir -p "$HOME/.ssh"
+  fi
+
+  echo "$GIT_SSH_KEY" | base64 -D > "$HOME/.ssh/id_key"
+  git clone "$GIT_REPO" /repo
   echo "TBD"
 }
 
 execute_promotion_from_zip() {
+  local file
+  file="$1"
   echo "TBD"
 }
 
