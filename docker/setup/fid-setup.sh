@@ -72,6 +72,12 @@ stage_promotion_from_git() {
     mkdir -p "$HOME/.ssh"
   fi
 
+  cat <<EOF > "$HOME/.ssh/config"
+Host *
+  StrictHostKeyChecking no
+  UserKnownHostsFile=/dev/null
+EOF
+
   if [ -d "$FID_GIT_CONFIG_DIR_PATH" ]; then
     rm -rf "$FID_GIT_CONFIG_DIR_PATH"
   fi
