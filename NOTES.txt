@@ -3,3 +3,4 @@
 3. Document upgrade process
 4. Document how to use the setup for different resources
 5. Document templates
+6. Document how renaming an RDN, the RDN must be unique
