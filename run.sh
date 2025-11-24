@@ -13,7 +13,7 @@ check_for_env_files() {
 
 get_command() {
   if [ $# -ne 1 ]; then
-    echo "Must specify command: start, stop, build, or setup" >&2
+    echo "Must specify command: start, stop, setup, build-iddm, or build-setup" >&2
     exit 1
   fi
 
