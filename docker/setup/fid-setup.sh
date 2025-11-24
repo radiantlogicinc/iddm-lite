@@ -27,7 +27,7 @@ wait_for_fid() {
 
 find_and_execute_operations() {
   find . -maxdepth 1 -mindepth 1 -name 'iddm-*' | while read -r file; do
-    echo "Processing $file"
+    echo "Executing operation for $file"
   done
 }
 
