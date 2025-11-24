@@ -194,7 +194,7 @@ execute_datasource_update() {
 
     local ds_name
     ds_name="${BASH_REMATCH[1]}"
-    echo "$ds_name"
+    echo "NAME $ds_name"
   done
 }
 
@@ -218,7 +218,7 @@ find_and_execute_operations() {
   fi
 
   local cert_files
-  cert_files="$(find "$INPUT_DIR" -maxdepth 1 -name '*.pem')"
+  mapfile -t cert_files < <(find "$INPUT_DIR" -maxdepth 1 -name '*.pem')
   if [ -n "$cert_files" ]; then
     execute_cert_import "${cert_files[@]}"
   fi
@@ -228,7 +228,7 @@ find_and_execute_operations() {
   fi
 
   local ds_files
-  ds_files="$(find "$INPUT_DIR" -maxdepth 1 -name 'iddm-promotion-datasource-*.sh')"
+  mapfile -t ds_files < <(find "$INPUT_DIR" -maxdepth 1 -name 'iddm-promotion-datasource-*.sh')
   if [ -n "$ds_files" ]; then
     execute_datasource_update "${ds_files[@]}"
   fi
