@@ -185,7 +185,7 @@ execute_database_datasource_update() {
   local ds_name
   ds_name="$1"
 
-  echo "Configuring Database datasource"
+  echo "Configuring Database datasource $ds_name"
 
   local uri_encoded_name
   uri_encoded_name=$(echo -n "$ds_name" | jq -sRr @uri)
@@ -212,7 +212,7 @@ execute_ldap_datasource_update() {
   local ds_name
   ds_name="$1"
 
-  echo "Configuring LDAP datasource"
+  echo "Configuring LDAP datasource $ds_name"
 
   local uri_encoded_name
   uri_encoded_name=$(echo -n "$ds_name" | jq -sRr @uri)
