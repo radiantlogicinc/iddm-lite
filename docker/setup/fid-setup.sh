@@ -5,6 +5,7 @@ trap 'echo "fid-setup.sh: Error occurred at line $LINENO, aborting"; exit 1' ERR
 
 FID_ADMIN_HOST=fid
 FID_ADMIN_PORT=9101
+INPUT_DIR=/input
 
 wait_for_fid() {
   for ((i=1; i<=100; i++)); do
@@ -24,4 +25,12 @@ wait_for_fid() {
   exit 1
 }
 
+find_and_execute_operations() {
+  find . -maxdepth 1 -mindepth 1 -name 'iddm-*' | while read -r file; do
+    echo "Processing $file"
+  done
+}
+
 echo "Running Home Depot RadiantLogic IDDM Lite setup"
+wait_for_fid
+find_and_execute_operations
