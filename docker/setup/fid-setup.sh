@@ -10,7 +10,6 @@ FID_GIT_DIR_PATH=/fid-git
 FID_GIT_CONFIG_DIR_PATH="$FID_GIT_DIR_PATH/config"
 INPUT_PROMOTION_GIT_FILE="$INPUT_DIR/iddm-promotion-git.sh"
 INPUT_PROMOTION_ZIP_FILE="$INPUT_DIR/iddm-promotion.zip"
-DATASOURCE_FILENAME_REGEX=^\/input\/iddm-promotion-datasource-\(.+\)\.sh\$
 
 wait_for_fid() {
   for ((i=1; i<=100; i++)); do
@@ -183,7 +182,7 @@ execute_cert_import() {
 
 execute_database_datasource_update() {
   local ds_name
-  ds_name="$1"
+  ds_name="$NAME"
 
   echo "Configuring Database datasource $ds_name"
 
@@ -214,7 +213,7 @@ execute_database_datasource_update() {
 
 execute_ldap_datasource_update() {
   local ds_name
-  ds_name="$1"
+  ds_name="$NAME"
 
   echo "Configuring LDAP datasource $ds_name"
 
@@ -251,18 +250,11 @@ execute_datasource_update() {
 
   for file in "${ds_files[@]}"; do
     echo "Updating promotion datasource from $file"
-    if [[ ! "$file" =~ $DATASOURCE_FILENAME_REGEX  ]]; then
-      echo "$file does not match regex $DATASOURCE_FILENAME_REGEX" >&2
-      exit 1
-    fi
-
-    local ds_name
-    ds_name="${BASH_REMATCH[1]}"
     (
       . "$file"
       case "$CATEGORY" in
-        ldap) execute_ldap_datasource_update "$ds_name" ;;
-        database) execute_database_datasource_update "$ds_name" ;;
+        ldap) execute_ldap_datasource_update ;;
+        database) execute_database_datasource_update ;;
         *)
           echo "Invalid category: $CATEGORY" >&2
           exit 1
