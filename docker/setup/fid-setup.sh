@@ -112,7 +112,7 @@ stage_promotion_from_zip() {
   unzip -q "$INPUT_PROMOTION_ZIP_FILE" -d "$FID_GIT_CONFIG_DIR_PATH"
   if [ ! -f "$FID_GIT_CONFIG_DIR_PATH/report.json" ] && [ -f "$FID_GIT_CONFIG_DIR_PATH"/*/report.json ]; then
     echo "Fixing output structure after unzip"
-    cp -R "$FID_GIT_CONFIG_DIR_PATH"/*/* "$FID_GIT_CONFIG_DIR_PATH"
+    mv "$FID_GIT_CONFIG_DIR_PATH"/*/* "$FID_GIT_CONFIG_DIR_PATH"
   fi
 
   if [ ! -f "$FID_GIT_CONFIG_DIR_PATH/report.json" ]; then
