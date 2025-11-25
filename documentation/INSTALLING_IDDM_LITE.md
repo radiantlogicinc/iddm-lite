@@ -44,4 +44,4 @@ To stop the application, run the command `./run.sh stop`.
 
 ## Re-Building the Application Images
 
-To re-build the application images if there are any changes to the docker builds, run `./run.sh build-iddm`.
+The application images are build the first time they are started and stored in the local container runtime. To re-build the application images if there are any changes to the docker builds, run `./run.sh build-iddm`.
