@@ -459,6 +459,25 @@ normalize_rdn() {
   echo "${rdn//[=,-]/_}"
 }
 
+# .dvx content cannot be safely modified by simple sed expressions.
+find_and_replace_rdn_in_dvx() {
+  local actual_rdn_key actual_rdn_value staging_rdn_key staging_rdn_value
+  staging_rdn_key="$1"
+  staging_rdn_value="$2"
+  actual_rdn_key="$3"
+  actual_rdn_value="$4"
+
+  # shellcheck disable=SC2016
+  (
+    export -f replace_rdn_in_dvx
+    find "$FID_GIT_CONFIG_DIR_PATH" \
+      -type f \
+      -name '*.dvx' \
+      -print0 | \
+      xargs -0 -I {} bash -c 'replace_rdn_in_dvx "$1" "$2" "$3" "$4" "$5"' _ "{}" "$staging_rdn_key" "$staging_rdn_value" "$actual_rdn_key" "$actual_rdn_value"
+  )
+}
+
 execute_rename_rdns() {
   local rename_files
   rename_files=("$@")
