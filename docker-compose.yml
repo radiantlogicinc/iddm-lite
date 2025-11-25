@@ -61,7 +61,7 @@ services:
       - ZK_CONN_STR=zookeeper:2181
       - RADIANT_LICENSE=${IDDM_LICENSE}
       - FID_REVISION_UPDATE=true
-      - FID_SERVER_JOPTS=-Xms1g -Xmx2600m
+      - FID_SERVER_JOPTS=-Xms1g -Xmx3000m
       - INSTALL_SAMPLES=false
       - FID_ADMIN_API_KEY=${FID_ADMIN_API_KEY}
       - ZK_PASSWORD=${ZOOKEEPER_PASSWORD}
