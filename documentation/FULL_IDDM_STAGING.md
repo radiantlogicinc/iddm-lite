@@ -26,6 +26,8 @@ Staging IDDM ----
                   --> Store 4 IDDM Lite
 ```
 
+Promoting the configurations requires running the Promotion Export on the Staging IDDM, and then using the setup image provided with this project do to the import on the in-store IDDM Lite.
+
 ## More Config Promotion Information
 
 The following is the official documentation for Config Promotion.
