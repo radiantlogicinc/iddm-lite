@@ -3,3 +3,20 @@
 The setup image bundled with this project is optimized for configuring IDDM Lite with Config Promotion. This means the configurations should be developed and tested using the full staging IDDM and then exported so they are ready to be used in-store.
 
 This guide will explain how to use the setup image to perform the import and automate a few extra configuration steps that may be needed beyond the import.
+
+## The Setup Directory
+
+For all operations using the setup image, files must be placed into a directory called `setup` within the root data directory of the project. It would look like this:
+
+```
+${IDDM_DATA_ROOT}/
+  setup/
+```
+
+The files placed here are control files that the setup image will use to determine which operations to perform. The individual files will be described in subsequent sections.
+
+## Performing the Import
+
+### Using Git
+
+The simplest way to do the import is using git. By providing the necessary git configurations, you can pull down the changes from the promotion git repository easily.
