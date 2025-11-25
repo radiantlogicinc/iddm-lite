@@ -21,7 +21,7 @@ get_command() {
 }
 
 start() {
-  echo "Starting RadiantLogic IDDM-Lite application"
+  echo "Starting Radiant Logic IDDM-Lite application"
 
   docker compose \
     --profile fid \
@@ -30,7 +30,7 @@ start() {
 }
 
 stop() {
-  echo "Stopping RadiantLogic IDDM-Lite application"
+  echo "Stopping Radiant Logic IDDM-Lite application"
 
   docker compose \
     "${ENV_FILE_ARGS[@]}" \
@@ -39,7 +39,7 @@ stop() {
 }
 
 setup() {
-  echo "Running RadiantLogic IDDM-Lite setup"
+  echo "Running Radiant Logic IDDM-Lite setup"
 
   docker compose \
     "${ENV_FILE_ARGS[@]}" \
@@ -51,7 +51,7 @@ setup() {
 build() {
   local profile
   profile="$1"
-  echo "(Re-)Building RadiantLogic IDDM-Lite images"
+  echo "(Re-)Building Radiant Logic IDDM-Lite images"
 
   docker compose \
     "${ENV_FILE_ARGS[@]}" \

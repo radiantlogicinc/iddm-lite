@@ -382,7 +382,7 @@ wait_for_fid() {
   exit 1
 }
 
-echo "Running Home Depot RadiantLogic Identity Data Management FID setup script"
+echo "Running Home Depot Radiant Logic Identity Data Management FID setup script"
 validate_configuration
 unpack_data
 fix_store_rdns
@@ -391,4 +391,4 @@ wait_for_fid
 import_certificates
 import_configuration_data
 configure_datasource
-echo "Home Depot RadiantLogic Identity Data Management FID setup complete"
+echo "Home Depot Radiant Logic Identity Data Management FID setup complete"
