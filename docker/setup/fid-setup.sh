@@ -452,6 +452,13 @@ rename_rdn() {
   find_and_replace_rdn_in_dvx "$source_rdn_key" "$source_rdn_value" "$target_rdn_key" "$target_rdn_value"
 }
 
+normalize_rdn() {
+  local rdn
+  rdn="$1"
+
+  echo "${rdn//[=,-]/_}"
+}
+
 execute_rename_rdns() {
   local rename_files
   rename_files=("$@")
