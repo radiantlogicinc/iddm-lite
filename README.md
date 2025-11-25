@@ -4,9 +4,21 @@ This is the configuration for the "IDDM Lite" custom deployment designed for Hom
 
 ## Overview
 
+### Cloning This Repo
+
+The simplest approach to deploying IDDM Lite on the in-store servers is to clone this repo onto the servers themselves. Then use the provided resources in this repo to run and configure the IDDM Lite deployment.
+
 ### Customized Docker Images
 
-This project provides slightly customized versions
+This project provides slightly customized versions of two IDDM docker images: `fid` and `zookeeper`. Most of the changes are to the `fid` image, and are designed to ensure it can run in a lightweight mode on a resource-constrained server.
+
+### Setup Image
+
+A special setup image has been prepared as well. This image is not the only way to configure the in-store IDDM Lite deployment. However, given that IDDM Lite cannot leverage the robust configuration mechanisms of the full IDDM deployment, this image is designed to easily automate several critical and common flows. It will hopefully enable the in-store IDDM Lite deployments to be setup more rapidly.
+
+### Docker Compose & Run Script
+
+A `docker-compose.yml` file is provided with everything pre-configured. The compose file is designed to build the images from the provided dockerfiles when this project is deployed on the server itself. There is also a `run.sh` script that will manage the lifecycle of starting, stopping, and setting up the IDDM Lite deployment using the `docker-compose.yml` file.
 
 ## Detailed Documentation
 
