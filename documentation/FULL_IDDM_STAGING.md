@@ -8,6 +8,12 @@ IDDM Lite can be configured directly if necessary, however that process is not n
 
 The "staging" IDDM would be a full deployment to kubernetes that exists exclusively to develop and test new configurations. It should be treated as if it was an in-store IDDM, even though it will likely be in a more central corporate location. The full suite of IDDM configuration tools will be available in this environment. The combination of a robust UI coupled with a well-documented public API will make the experience easy. 
 
+### Renaming Is an Option - But Not Recommended
+
+The naming context that represents the store's data, if necessary, can be renamed upon import. This means that in the staging IDDM it can be called one thing (ie, `ou=staging-store`) and then on the in-store IDDM Lite it can be called something else (ie, `ou=store1`). This is a mechanism that is handled by the setup image during IDDM Lite configuration.
+
+WARNING: While this option exists and should work, it is strongly recommended to avoid this approach. Context renaming is a complex operation designed specifically for this Home Depot deployment, and it may not be able to handle all configuration permutations.
+
 ### Promoting Configurations to In-Store IDDM
 
 On top of this easy configuration experience, transferring the configurations from the staging environment to the in-store IDDM Lite will also be very simple. IDDM comes with a feature called Config Promotion, it's a new addition first released in 8.1.5. This is a fully automated system designed to move configurations from one IDDM to another. It also fully supports a "one to many" promotion model, where the staging IDDM can have its configurations promoted to the full suite of store IDDMs. It uses git as a medium of exchange, pushing the configurations to a git repository when exported from staging and pulling them back down when importing to the store IDDM Lites.

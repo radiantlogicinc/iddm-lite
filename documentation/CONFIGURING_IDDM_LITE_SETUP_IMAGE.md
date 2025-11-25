@@ -31,4 +31,8 @@ NOTE: The `GIT_REPO` is the ssh-based URL used for cloning.
 
 ### Using Zip
 
-If for some reason git cannot be accessed on the in-store servers, the content can be downloaded from the promotion git repository as a zip file and placed on the machine. 
+If for some reason git cannot be accessed on the in-store servers, the content can be downloaded from the promotion git repository as a zip file and placed on the machine. It must be placed in the setup directory with the name `iddm-promotion.zip` (`${IDDM_DATA_ROOT}/setup/iddm-promotion.zip`).
+
+The primary issue with the zip approach is needing to transfer the data manually to each store. Otherwise, it is just as effective as the git approach.
+
+## Adding 
