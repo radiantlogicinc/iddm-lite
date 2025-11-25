@@ -4,6 +4,12 @@ The setup image bundled with this project is optimized for configuring IDDM Lite
 
 This guide will explain how to use the setup image to perform the import and automate a few extra configuration steps that may be needed beyond the import.
 
+## Running the Setup Image
+
+This is a fairly simple process command: `./run.sh setup`. This will execute all setup tasks. Please see the sections below as they will cover how to supply the configuration necessary for setup to be performed successfully.
+
+The setup image is built on the local machine and published to the local container registry. If it needs to be rebuilt, simply run `./run.sh build-setup`.
+
 ## The Setup Directory
 
 For all operations using the setup image, files must be placed into a directory called `setup` within the root data directory of the project. It would look like this:
@@ -80,3 +86,8 @@ export BIND_PASSWORD=
 
 ## Configuring Certificates
 
+Config Promotion does not currently cover all IDDM configurations, although it will be expanded to cover all missing areas over the next several releases. One area that is not covered by Config Promotion currently is client certificates. If any datasources require a certificate to be loaded into the IDDM Lite deployment in order to connect to the target system, this has to be done via an extra step after the import.
+
+To do this, simply place the certificate file into the setup directory in PEM format (`${IDDM_DATA_ROOT}/setup/certificate.pem`). Keep in mind the file name will become the certificate alias when loaded into IDDM Lite.
+
+Any PEM files that are found during the setup flow will be loaded into the IDDM Lite deployment.
