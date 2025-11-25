@@ -77,3 +77,6 @@ export IS_SSL=
 export BIND_DN=
 export BIND_PASSWORD=
 ```
+
+## Configuring Certificates
+
