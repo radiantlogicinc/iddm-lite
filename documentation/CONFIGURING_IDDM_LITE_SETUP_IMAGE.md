@@ -19,4 +19,16 @@ The files placed here are control files that the setup image will use to determi
 
 ### Using Git
 
-The simplest way to do the import is using git. By providing the necessary git configurations, you can pull down the changes from the promotion git repository easily.
+The simplest way to do the import is using git. By providing the necessary git configurations, you can pull down the changes from the promotion git repository easily. To configure the setup process to do this, place a control file called `iddm-promotion-git.sh` into the setup directory (`${IDDM_DATA_ROOT}/setup/iddm-promotion-git.sh`) with the following contents:
+
+```sh
+export GIT_REPO=
+export GIT_SSH_KEY_BASE64=
+export GIT_BRANCH=
+```
+
+NOTE: The `GIT_REPO` is the ssh-based URL used for cloning.
+
+### Using Zip
+
+If for some reason git cannot be accessed on the in-store servers, the content can be downloaded from the promotion git repository as a zip file and placed on the machine. 
