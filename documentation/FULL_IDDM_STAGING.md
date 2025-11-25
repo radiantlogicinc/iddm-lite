@@ -10,7 +10,9 @@ The "staging" IDDM would be a full deployment to kubernetes that exists exclusiv
 
 ### Promoting Configurations to In-Store IDDM
 
-On top of this easy configuration experience, transferring the configurations from the staging environment to the in-store IDDM Lite will also be very simple. IDDM comes with a feature called Config Promotion, it's a new addition first released in 8.1.5. This is a fully automated system designed to move configurations from one IDDM to another. It also fully supports a "one to many" promotion model, where the staging IDDM can have its configurations promoted to the full suite of store IDDMs. Essentially it would look something like this:
+On top of this easy configuration experience, transferring the configurations from the staging environment to the in-store IDDM Lite will also be very simple. IDDM comes with a feature called Config Promotion, it's a new addition first released in 8.1.5. This is a fully automated system designed to move configurations from one IDDM to another. It also fully supports a "one to many" promotion model, where the staging IDDM can have its configurations promoted to the full suite of store IDDMs. It uses git as a medium of exchange, pushing the configurations to a git repository when exported from staging and pulling them back down when importing to the store IDDM Lites.
+
+This means that as soon as the Staging IDDM is good to go, the configurations can quickly and easily be transferred to the in-store IDDMs. It would look something like this:
 
 ```
                   --> Store 1 IDDM Lite
@@ -24,4 +26,10 @@ Staging IDDM ----
                   --> Store 4 IDDM Lite
 ```
 
-https://developer.radiantlogic.com/idm/v8.1/installation/config-promotion/
+## More Config Promotion Information
+
+The following is the official documentation for Config Promotion.
+
+User Guide: https://developer.radiantlogic.com/idm/v8.1/deployment/configuration-promotion/
+
+Self Managed Kubernetes Guide: https://developer.radiantlogic.com/idm/v8.1/installation/config-promotion/
