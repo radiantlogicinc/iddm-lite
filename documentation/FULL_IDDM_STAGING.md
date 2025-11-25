@@ -12,6 +12,8 @@ The "staging" IDDM would be a full deployment to kubernetes that exists exclusiv
 
 The naming context that represents the store's data, if necessary, can be renamed upon import. This means that in the staging IDDM it can be called one thing (ie, `ou=staging-store`) and then on the in-store IDDM Lite it can be called something else (ie, `ou=store1`). This is a mechanism that is handled by the setup image during IDDM Lite configuration.
 
+Any context that will be renamed upon import should have as unique a name as possible at the RDN level, because that is the level the rename operation takes place upon.
+
 WARNING: While this option exists and should work, it is strongly recommended to avoid this approach. Context renaming is a complex operation designed specifically for this Home Depot deployment, and it may not be able to handle all configuration permutations.
 
 ### Promoting Configurations to In-Store IDDM

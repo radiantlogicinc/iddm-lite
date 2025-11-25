@@ -35,4 +35,45 @@ If for some reason git cannot be accessed on the in-store servers, the content c
 
 The primary issue with the zip approach is needing to transfer the data manually to each store. Otherwise, it is just as effective as the git approach.
 
-## Adding 
+## Renaming Contexts
+
+It is possible to rename context RDNs during the import. If you want to do this, you can place a control file called `iddm-promotion-rename-{NUMBER}.sh` into the setup directory, where the `NUMBER` is an incrementing integer based on how many of these operations you want to take place (`${IDDM_DATA_ROOT}/setup/iddm-promotion-rename-1.sh`). The file needs to have the following contents:
+
+```sh
+export SOURCE_RDN=
+export TARGET_RDN=
+```
+
+WARNING: This is not recommended. The feature was designed exclusively for this Home Depot deployment and may not support all permutations of configurations. If possible, avoid leveraging this feature.
+
+## Configuring Datasources
+
+Because of the expectation that promoting configurations between environments may result in datasources targeting a different system (ie, moving from QA to Prod databases), datasources are promoted only as a shell. This means that after a promotion import, the datasource connection information must be supplied manually. The setup image is configured to make this process fairly streamlined, supporting both database (ie, SQL) and LDAP datasources.
+
+First, you need to place a control file called `iddm-promotion-datasource-{NUMBER}.sh` into the setup directory, where the `NUMBER` is an incrementing integer based on how many of these operations you want to take place (`${IDDM_DATA_ROOT}/setup/iddm-promotion-datasource-1.sh`). The file contents will be based on the type of datasource being configured.
+
+For a database datasource:
+
+```sh
+# Do not change CATEGORY, it determines that we are using a database
+export CATEGORY=database
+# The NAME must match the name of the datasource that was imported
+export NAME=
+export JDBC_URL=
+export USERNAME=
+export PASSWORD=
+```
+
+For an LDAP datasource:
+
+```sh
+# Do not change CATEGORY, it determines that we are using an ldap
+export CATEGORY=ldap
+# The NAME must match the name of the datasource that was imported
+export NAME=
+export HOST=
+export PORT=
+export IS_SSL=
+export BIND_DN=
+export BIND_PASSWORD=
+```
