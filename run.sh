@@ -68,4 +68,8 @@ case "$command" in
   setup) setup ;;
   build-iddm) build fid ;;
   build-setup) build setup ;;
+  *)
+    echo "Invalid command: $command" >&2
+    exit 1
+  ;;
 esac
