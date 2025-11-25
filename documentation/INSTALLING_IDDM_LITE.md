@@ -37,3 +37,11 @@ ${IDDM_DATA_ROOT}/
   fid/
   git/
 ```
+
+## Stopping the Application
+
+To stop the application, run the command `./run.sh stop`.
+
+## Re-Building the Application Images
+
+To re-build the application images if there are any changes to the docker builds, run `./run.sh build-iddm`.
