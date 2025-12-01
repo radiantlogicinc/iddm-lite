@@ -10,6 +10,8 @@ Home Depot has informed us that there is a maximum of 4GB of memory available to
 
 All memory settings are controlled via environment variables configured in the `.env` file. All the variables represent an amount of memory in Megabytes. The next few sections explain which components each variable controls.
 
+The memory settings pre-configured in this repository represent best-guess values. Without actual testing of this use case, that is the best that can be done. Adjustments in the future may become necessary.
+
 ## FID - Primary Application Memory
 
 The FID container is the primary application of IDDM Lite. The memory limit for the whole container is controlled by the `FID_CONTAINER_MAX_MEMORY_MB`. However, FID is composed of three separate processes inside of the container, each one needs its own memory cap. These are:
