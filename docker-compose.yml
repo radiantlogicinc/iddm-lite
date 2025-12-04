@@ -57,7 +57,7 @@ services:
       - GIT_DIRECTORY=/opt/radiantone/git
       - IDDM_SERVICE_ACCOUNT_USERNAME=cn=api-service-user,ou=ServiceUsers,cn=config
       - ZK=external
-      - ZK_CLUSTER=homedepot-store
+      - ZK_CLUSTER=${CLUSTER_NAME}
       - ZK_CONN_STR=zookeeper:2181
       - RADIANT_LICENSE=${IDDM_LICENSE}
       - FID_REVISION_UPDATE=true

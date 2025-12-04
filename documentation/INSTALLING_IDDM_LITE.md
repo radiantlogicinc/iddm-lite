@@ -14,6 +14,9 @@ Add a file called `.env-server` to the root of this project. It needs to be conf
 # Data locations
 IDDM_DATA_ROOT=
 
+# Cluster Info
+CLUSTER_NAME=
+
 # Credentials
 IDDM_ROOT_PASSWORD=
 ZOOKEEPER_PASSWORD=
