@@ -1,10 +1,10 @@
 # Configuring IDDM Lite Without Using the Setup Image
 
-If the Config Promotion based workflow isn't appropriate for Home Depot's needs, or if there are some additional requirements that just aren't properly supported by what is provided in the setup image, there are other configuration options. This is a quick overview of what they are.
+If the Config Promotion based workflow isn't appropriate for a customer's needs, or if there are some additional requirements that just aren't properly supported by what is provided in the setup image, there are other configuration options. This is a quick overview of what they are.
 
 ## No UI and No Configuration APIs
 
-The strict Home Depot resource requirements, specifically the 4GB RAM cap, means that many components of IDDM had to be dropped to meet these restrictions. This means that critical dependencies necessary for both the IDDM UI and the Configuration APIs are not available on the IDDM Lite in-store deployments. If in the future 8GB of RAM becomes available on each in-store server, then this restriction can be lifted and a full IDDM can be deployed in each store.
+IDDM Lite has been designed to operate under extraordinarily stringent resource constraints, most notably a cap of 4GB of RAM. Due to this, the UI and Configuration APIs will not be available for this deployment. 8GB of RAM is the minimum required for running IDDM with all of its features available.
 
 ## VDSConfig
 

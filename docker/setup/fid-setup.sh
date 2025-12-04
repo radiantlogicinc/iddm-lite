@@ -495,7 +495,7 @@ execute_rename_rdns() {
   echo "RDN rename operations complete"
 }
 
-echo "Running Home Depot Radiant Logic IDDM Lite setup"
+echo "Running Radiant Logic IDDM Lite setup"
 wait_for_fid
 find_and_execute_operations
-echo "Home Depot Radiant Logic IDDM Lite setup complete"
+echo "Radiant Logic IDDM Lite setup complete"

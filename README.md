@@ -12,7 +12,7 @@ The simplest approach to deploying IDDM Lite on the in-store servers is to clone
 
 This project provides slightly customized versions of two IDDM docker images: `fid` and `zookeeper`. Most of the changes are to the `fid` image, and are designed to ensure it can run in a lightweight mode on a resource-constrained server.
 
-WARNING: Under no circumstances should the contents of the `./docker` directory be modified. These images have been crafted to achieve maximum functionality under restrictive conditions, and the configuration heavily depends on knowledge of IDDM internals. Making changes to the contents of this directory independent of Radiantlogic could result in runtime errors and will leave Radiantlogic support unable to adequately assist you in solving the issues.
+WARNING: Under no circumstances should the contents of the `./docker` directory be modified. These images have been crafted to achieve maximum functionality under restrictive conditions, and the configuration heavily depends on knowledge of IDDM internals. Making changes to the contents of this directory independent of Radiant Logic could result in runtime errors and will leave Radiant Logic support unable to adequately assist you in solving the issues.
 
 ### Setup Image
 

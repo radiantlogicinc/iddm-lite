@@ -14,7 +14,7 @@ The naming context that represents the store's data, if necessary, can be rename
 
 Any context that will be renamed upon import should have as unique a name as possible at the RDN level, because that is the level the rename operation takes place upon.
 
-WARNING: While this option exists and should work, it is strongly recommended to avoid this approach. Context renaming is a complex operation designed specifically for this Home Depot deployment, and it may not be able to handle all configuration permutations.
+WARNING: While this option exists and should work, it is strongly recommended to avoid this approach. Context renaming is a complex operation designed specifically for a single customer request, and it may not be able to handle all configuration permutations.
 
 ### Promoting Configurations to In-Store IDDM
 

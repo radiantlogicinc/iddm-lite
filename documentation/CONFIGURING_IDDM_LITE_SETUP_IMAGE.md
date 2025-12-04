@@ -50,7 +50,7 @@ export SOURCE_RDN=
 export TARGET_RDN=
 ```
 
-WARNING: This is not recommended. The feature was designed exclusively for this Home Depot deployment and may not support all permutations of configurations. If possible, avoid leveraging this feature.
+WARNING: This is not recommended. The feature was designed exclusively for a specific customer request, and it may not support all permutations of configurations. If the rename fails in any way, runtime errors are guaranteed. Use this carefully and only with thorough testing. 
 
 ## Configuring Datasources
 

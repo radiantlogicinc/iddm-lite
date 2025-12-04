@@ -4,7 +4,7 @@ This guide covers how to adjust the memory settings for IDDM Lite.
 
 ## Memory Cap
 
-Home Depot has informed us that there is a maximum of 4GB of memory available to IDDM Lite on the in-store servers. IDDM Lite is allowed to consume 100% of that 4GB of memory, but that is the hard limit.
+The customer implementation this has been designed for has an environment with a maximum of 4GB of RAM available. IDDM Lite is allowed to consume 100% of that 4GB of memory, but that is the hard limit.
 
 ## Memory Settings
 
