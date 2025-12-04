@@ -2,7 +2,7 @@ ARG IDDM_VERSION
 
 FROM radiantone/fid:$IDDM_VERSION
 
-COPY ./homedepot-start.sh /opt/radiantone/homedepot-start.sh
-RUN chmod +x /opt/radiantone/homedepot-start.sh
+COPY ./fid-start.sh /opt/radiantone/fid-start.sh
+RUN chmod +x /opt/radiantone/fid-start.sh
 
-ENTRYPOINT [ "/opt/radiantone/homedepot-start.sh" ]
+ENTRYPOINT [ "/opt/radiantone/fid-start.sh" ]

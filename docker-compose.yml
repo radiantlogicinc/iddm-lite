@@ -4,7 +4,7 @@ services:
       context: ./docker/zk
       args:
         - ZOOKEEPER_VERSION=${ZOOKEEPER_VERSION}
-    image: homedepot-zookeeper:${ZOOKEEPER_VERSION}
+    image: zookeeper-lite:${ZOOKEEPER_VERSION}
     platform: linux/amd64
     container_name: zookeeper
     hostname: zookeeper-0
@@ -37,7 +37,7 @@ services:
       context: ./docker/fid
       args:
         - IDDM_VERSION=${IDDM_VERSION}
-    image: homedepot-fid:${IDDM_VERSION}
+    image: fid-lite:${IDDM_VERSION}
     container_name: fid
     hostname: fid-0
     networks:
