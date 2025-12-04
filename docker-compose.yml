@@ -83,7 +83,7 @@ services:
   setup:
     build:
       context: ./docker/setup
-    image: homedepot-fid-setup:latest
+    image: fid-lite-setup:latest
     container_name: fid-setup
     platform: linux/amd64
     networks:
