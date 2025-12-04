@@ -1,6 +1,6 @@
-# Home Depot IDDM Lite Deployment
+# IDDM Lite
 
-This is the configuration for the "IDDM Lite" custom deployment designed for Home Depot. This document will explain how to leverage it to most effectively deploy to the in-store IDDMs.
+This is the configuration for the "IDDM Lite" custom deployment. It is a stripped-down version of IDDM designed for limited, lightweight use cases. This document will explain how to leverage it to most effectively.
 
 ## Overview
 
@@ -12,7 +12,7 @@ The simplest approach to deploying IDDM Lite on the in-store servers is to clone
 
 This project provides slightly customized versions of two IDDM docker images: `fid` and `zookeeper`. Most of the changes are to the `fid` image, and are designed to ensure it can run in a lightweight mode on a resource-constrained server.
 
-WARNING: Under no circumstances should the contents of the `./docker` directory be modified. These images have been crafted to achieve the goals of Home Depot and the configuration heavily depends on knowledge of IDDM internals. Making changes to the contents of this directory independent of Radiantlogic could result in runtime errors and will leave Radiantlogic support unable to adequately assist you in solving the issues.
+WARNING: Under no circumstances should the contents of the `./docker` directory be modified. These images have been crafted to achieve maximum functionality under restrictive conditions, and the configuration heavily depends on knowledge of IDDM internals. Making changes to the contents of this directory independent of Radiantlogic could result in runtime errors and will leave Radiantlogic support unable to adequately assist you in solving the issues.
 
 ### Setup Image
 
