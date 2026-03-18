@@ -10,7 +10,7 @@ IDDM Lite has been designed to operate under extraordinarily stringent resource 
 
 The VDSConfig utility is a CLI based tool for configuring IDDM. It is an older part of the product that, while still fully functional, may not support all the latest bells and whistles since all functionality is being migrated to the new Configuration APIs.
 
-VDSConfig will exist on the filesystem of the in-store server at `${IDDM_DATA_ROOT}/fid/vds/bin/vdsconfig.sh`, however it is recommended to only exercise it from inside the running FID docker container since it needs in-depth connectivity with the FID application itself. This can be done by running `docker exec -it fid /opt/radiantone/vds/bin/vdsconfig.sh` on the in-store server. Running the command with no arguments will open a help menu that will describe the various options available.
+Running vdsconfig can be done via the docker cli with the command `docker exec -it fid /opt/radiantone/vds/bin/vdsconfig.sh` on the in-store server. Running the command with no arguments will open a help menu that will describe the various options available.
 
 ## Admin REST APIs
 
