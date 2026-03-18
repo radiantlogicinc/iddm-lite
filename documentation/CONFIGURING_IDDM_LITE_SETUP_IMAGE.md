@@ -6,7 +6,7 @@ This guide will explain how to use the setup image to perform the import and aut
 
 ## Running the Setup Image
 
-This is a fairly simple process command: `./run.sh setup`. This will execute all setup tasks. Please see the sections below as they will cover how to supply the configuration necessary for setup to be performed successfully.
+This is a fairly simple process command that is executed in this project: `./run.sh setup`. This will execute all setup tasks. Please see the sections below as they will cover how to supply the configuration necessary for setup to be performed successfully.
 
 The setup image is built on the local machine and published to the local container registry. If it needs to be rebuilt, simply run `./run.sh build-setup`.
 
