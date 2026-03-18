@@ -21,6 +21,8 @@ ${IDDM_DATA_ROOT}/
 
 The files placed here are control files that the setup image will use to determine which operations to perform. The individual files will be described in subsequent sections.
 
+NOTE: `IDDM_DATA_ROOT` is defined in the `.env-server` file that is created during the installation process. Please see [Installing IDDM Lite](./INSTALLING_IDDM_LITE.md) for more details.
+
 ## Performing the Import
 
 ### Using Git
