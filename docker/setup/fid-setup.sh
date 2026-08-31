@@ -3,8 +3,9 @@
 set -Eeuo pipefail
 trap 'echo "fid-setup.sh: Error occurred at line $LINENO, aborting"; exit 1' ERR
 
-FID_ADMIN_HOST=fid
+FID_HOST=fid
 FID_ADMIN_PORT=9101
+FID_HEALTH_PORT=9100
 INPUT_DIR=/input
 FID_GIT_DIR_PATH=/fid-git
 FID_GIT_CONFIG_DIR_PATH="$FID_GIT_DIR_PATH/config"
@@ -12,18 +13,27 @@ INPUT_PROMOTION_GIT_FILE="$INPUT_DIR/iddm-promotion-git.sh"
 INPUT_PROMOTION_ZIP_FILE="$INPUT_DIR/iddm-promotion.zip"
 RDN_REGEX="^(.+)=(.+)$"
 
+# Probes FID's health endpoint, which answers `pong` once FID is ready to serve requests.
+# The `|| return 1` keeps the probe out of reach of the ERR trap, which fires on a failed
+# command regardless of errexit and would otherwise abort the script while FID is starting.
+fid_is_ready() {
+  local response
+  response=$(curl -sf --connect-timeout 2 --max-time 5 \
+    "http://$FID_HOST:$FID_HEALTH_PORT/ping" 2>/dev/null) || return 1
+
+  [ "$response" = "pong" ]
+}
+
 wait_for_fid() {
+  local i
   for ((i=1; i<=100; i++)); do
     echo "Waiting for FID to be ready..."
-    local result
-    set +e
-    nc -w 1 "$FID_ADMIN_HOST" "$FID_ADMIN_PORT"
-    result=$?
-    set -e
 
-    if [ "$result" -eq 0 ]; then
+    if fid_is_ready; then
       return 0
     fi
+
+    sleep 2
   done
 
   echo "Timed out before FID became ready" >&2
@@ -38,7 +48,7 @@ execute_admin_request() {
   shift 1
 
   local fid_admin_base_url
-  fid_admin_base_url="https://$FID_ADMIN_HOST:$FID_ADMIN_PORT/v8/admin"
+  fid_admin_base_url="https://$FID_HOST:$FID_ADMIN_PORT/v8/admin"
 
   curl -sSk --fail-with-body -w "\n%{http_code}" \
     -H "x-api-key: $FID_ADMIN_API_KEY" \
@@ -372,7 +382,7 @@ fix_mapping_hashes() {
   fi
 
   local mapping_resources
-  readarray -t mapping_resources = < <(jq -r '.resources | keys[] | select(startswith("mappings"))' "$report_file")
+  readarray -t mapping_resources < <(jq -r '.resources | keys[] | select(startswith("mappings"))' "$report_file")
 
   for resource in "${mapping_resources[@]}"; do
     local pipeline_id new_pipeline_id hash new_hash
@@ -418,7 +428,7 @@ find_and_replace_rdn() {
 }
 
 replace_rdn_in_dvx() {
-  local target_rdn_key target_rdn_value source_rdn_key source_rdn_value
+  local file target_rdn_key target_rdn_value source_rdn_key source_rdn_value
   file="$1"
   source_rdn_key="$2"
   source_rdn_value="$3"

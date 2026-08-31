@@ -20,7 +20,7 @@ A special setup image has been prepared as well. This image is not the only way 
 
 ### Docker Compose & Run Script
 
-A `docker-compose.yml` file is provided with everything pre-configured. The compose file is designed to build the images from the provided dockerfiles when this project is deployed on the server itself. There is also a `run.sh` script that will manage the lifecycle of starting, stopping, and setting up the IDDM Lite deployment using the `docker-compose.yml` file.
+A `docker-compose.yml` file is provided with everything pre-configured. The compose file is designed to build the images from the provided dockerfiles when this project is deployed on the server itself. There is also a `run.sh` script that will manage the lifecycle of starting, stopping, and setting up the IDDM Lite deployment using the `docker-compose.yml` file. Alongside it is an `update_iddm_env.sh` script that works out the correct Zookeeper base version for a newer IDDM version and writes both into the `.env` file.
 
 ## Detailed Documentation
 
