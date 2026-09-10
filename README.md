@@ -1,6 +1,8 @@
 # IDDM Lite
 
-This is the configuration for the "IDDM Lite" custom deployment. It is a stripped-down version of IDDM designed for limited, lightweight use cases. This document will explain how to leverage it to most effectively.
+This is the configuration for the "IDDM Lite" custom deployment. It is a stripped-down version of IDDM designed for limited, lightweight use cases. It sacrifices pieces of IDDM functionality in order to substantially reduce resource requirements and run on more limited hardware. This document will explain how to leverage it to most effectively.
+
+## Disclaimer: This repository is provided solely for use by customers and users authorized by Radiant Logic. Standard Radiant Logic license terms do not apply. Any unapproved customer or other party must contact Radiant Logic and receive prior approval before accessing, using, or deploying its contents.
 
 ## Overview
 
