@@ -192,7 +192,7 @@ execute_vdsconfig_request() {
   log_debug "GET https://$FID_HOST:$FID_ADAP_PORT/adap/util vdsconfig $command_name $*"
 
   curl -sSk -G -w "\n%{http_code}" \
-    -H "Token: $ADAP_TOKEN" \
+    -H "Authorization: Token $ADAP_TOKEN" \
     --data-urlencode action=vdsconfig \
     --data-urlencode "commandname=$command_name" \
     --data-urlencode outputmode=json \
@@ -272,7 +272,10 @@ restore_vds_server_log_level() {
   fi
 
   # A long setup can outlive the token, so a rejected token gets one fresh bind and one retry.
-  if [ "$ADAP_STATUS_CODE" = "401" ] || [ "$ADAP_STATUS_CODE" = "403" ]; then
+  # ADAP answers an expired or unknown token with HTTP 400 and errorCode 256 rather than 401.
+  local error_code
+  error_code=$(echo "$ADAP_RESPONSE_BODY" | jq -r '.errorCode // empty' 2>/dev/null) || error_code=""
+  if [ "$ADAP_STATUS_CODE" = "401" ] || [ "$ADAP_STATUS_CODE" = "403" ] || [ "$error_code" = "256" ]; then
     log_debug "ADAP token rejected, binding again"
     if bind_adap 1 && set_vds_server_log_level "$VDS_SERVER_PRIOR_LOG_LEVEL"; then
       log_info "VDS Server log level restored to $VDS_SERVER_PRIOR_LOG_LEVEL"
