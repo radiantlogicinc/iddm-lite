@@ -33,3 +33,4 @@ A `docker-compose.yml` file is provided with everything pre-configured. The comp
 - [Configuring IDDM Lite Without Setup Image](./documentation/CONFIGURING_IDDM_LITE_NO_SETUP.md)
 - [Upgrading IDDM Lite to Newer IDDM Version](./documentation/UPGRADING_IDDM_LITE.md)
 - [Adjusting IDDM Lite Memory](./documentation/IDDM_MEMORY.md)
+- [Troubleshooting](./documentation/TROUBLESHOOTING.md)

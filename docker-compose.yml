@@ -94,6 +94,8 @@ services:
     environment:
       - FID_ADMIN_API_KEY=${FID_ADMIN_API_KEY}
       - SETUP_DEBUG=${SETUP_DEBUG:-false}
+      - FID_ROOT_USERNAME=${IDDM_ROOT_USERNAME}
+      - FID_ROOT_PASSWORD=${IDDM_ROOT_PASSWORD}
     profiles:
       - setup
     deploy:

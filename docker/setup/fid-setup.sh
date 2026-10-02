@@ -15,15 +15,40 @@ log_debug() { [ "$SETUP_DEBUG" = "true" ] && echo "[DEBUG] $*" >&2 || true; }
 
 trap 'log_error "fid-setup.sh: Error occurred at line $LINENO, aborting"; exit 1' ERR
 
+# Runs on every way out of the script, so the VDS Server log level is put back after a failure too.
+# The ERR trap and errexit are disabled first so a failure inside the handler cannot recurse.
+on_exit() {
+  local exit_status
+  exit_status="$1"
+  trap - ERR
+  set +e
+
+  restore_vds_server_log_level || exit_status=1
+  exit "$exit_status"
+}
+# The status is passed as an argument because declaring a local first would reset $?.
+trap 'on_exit $?' EXIT
+# As PID 1 bash ignores SIGTERM unless it is trapped; exiting from the handler runs the EXIT trap.
+trap 'exit 143' TERM
+trap 'exit 130' INT
+
 FID_HOST=fid
 FID_ADMIN_PORT=9101
 FID_HEALTH_PORT=9100
+FID_ADAP_PORT=8090
+ADAP_STATUS_CODE=""
+ADAP_RESPONSE_BODY=""
 INPUT_DIR=/input
 FID_GIT_DIR_PATH=/fid-git
 FID_GIT_CONFIG_DIR_PATH="$FID_GIT_DIR_PATH/config"
 INPUT_PROMOTION_GIT_FILE="$INPUT_DIR/iddm-promotion-git.sh"
 INPUT_PROMOTION_ZIP_FILE="$INPUT_DIR/iddm-promotion.zip"
 RDN_REGEX="^(.+)=(.+)$"
+VDS_LOG_CONFIG_PATH=zk:log4j2-vds.json
+VDS_SERVER_LOG_LEVEL_KEY=server.log.level
+VDS_SERVER_DEFAULT_LOG_LEVEL=WARN
+VDS_SERVER_PRIOR_LOG_LEVEL=""
+VDS_SERVER_DEBUG_ENABLED=false
 
 # Probes FID's health endpoint, which answers `pong` once FID is ready to serve requests.
 # The `|| return 1` keeps the probe out of reach of the ERR trap, which fires on a failed
@@ -103,6 +128,114 @@ execute_admin_request() {
   fi
 
   echo "$response_body"
+}
+
+# Runs a vdsconfig command through ADAP. Prints the response body on stdout and returns 0 on HTTP 2xx,
+# 1 otherwise. It never exits, so the retry loop and the EXIT trap can call it; callers decide what a
+# failure means. The status and body of the last call are also left in ADAP_STATUS_CODE and
+# ADAP_RESPONSE_BODY, because a caller that captures stdout runs this in a subshell and loses plain variables.
+# The first argument is the command name, the rest are name=value parameters.
+execute_vdsconfig_request() {
+  local command_name
+  command_name="$1"
+  shift 1
+
+  local -a param_args
+  param_args=()
+  local param
+  for param in "$@"; do
+    param_args+=(--data-urlencode "$param")
+  done
+
+  # Only the command and its parameters are logged; they are a path, a key and a value, never secrets.
+  log_debug "GET https://$FID_HOST:$FID_ADAP_PORT/adap/util vdsconfig $command_name $*"
+
+  curl -sSk -G -w "\n%{http_code}" \
+    -u "$FID_ROOT_USERNAME:$FID_ROOT_PASSWORD" \
+    --data-urlencode action=vdsconfig \
+    --data-urlencode "commandname=$command_name" \
+    --data-urlencode outputmode=json \
+    "${param_args[@]}" \
+    "https://$FID_HOST:$FID_ADAP_PORT/adap/util" > .adap_response_temp 2>&1 \
+    || true
+
+  ADAP_STATUS_CODE=$(tail -n1 < .adap_response_temp)
+  ADAP_RESPONSE_BODY=$(sed '$d' < .adap_response_temp)
+  rm -f .adap_response_temp
+  log_debug "ADAP response status: $ADAP_STATUS_CODE"
+
+  echo "$ADAP_RESPONSE_BODY"
+
+  [[ "$ADAP_STATUS_CODE" =~ ^2[0-9][0-9]$ ]]
+}
+
+# Reads the current VDS Server log level into VDS_SERVER_PRIOR_LOG_LEVEL, retrying while ADAP comes up.
+# A level that was never configured falls back to the default.
+read_vds_server_log_level() {
+  local i level error_message
+  for ((i=1; i<=10; i++)); do
+    log_debug "Reading VDS Server log level, attempt $i of 10"
+
+    if execute_vdsconfig_request get-logging-property \
+        "path=$VDS_LOG_CONFIG_PATH" "key=$VDS_SERVER_LOG_LEVEL_KEY" > /dev/null; then
+      level=$(echo "$ADAP_RESPONSE_BODY" | jq -r '.data.value // empty' 2>/dev/null) || level=""
+      if [ -n "$level" ] && [ "$level" != "null" ]; then
+        VDS_SERVER_PRIOR_LOG_LEVEL="$level"
+        return 0
+      fi
+    else
+      error_message=$(echo "$ADAP_RESPONSE_BODY" | jq -r '.errorMessage // empty' 2>/dev/null) || error_message=""
+      if [[ "$error_message" == *"could not find property"* ]]; then
+        VDS_SERVER_PRIOR_LOG_LEVEL="$VDS_SERVER_DEFAULT_LOG_LEVEL"
+        log_info "No VDS Server log level is configured, assuming $VDS_SERVER_DEFAULT_LOG_LEVEL"
+        return 0
+      fi
+    fi
+
+    sleep 2
+  done
+
+  log_error "Could not read the VDS Server log level through ADAP (HTTP $ADAP_STATUS_CODE)"
+  exit 1
+}
+
+# Sets the VDS Server log level through ADAP, returning 1 on failure so callers decide whether it aborts.
+set_vds_server_log_level() {
+  local level
+  level="$1"
+  execute_vdsconfig_request set-logging-property \
+    "path=$VDS_LOG_CONFIG_PATH" "key=$VDS_SERVER_LOG_LEVEL_KEY" "value=$level" > /dev/null
+}
+
+# Raises the VDS Server log level to DEBUG, remembering the prior level so it can be restored.
+enable_vds_server_debug_logging() {
+  read_vds_server_log_level
+
+  if ! set_vds_server_log_level DEBUG; then
+    log_error "Could not set the VDS Server log level to DEBUG through ADAP (HTTP $ADAP_STATUS_CODE)"
+    exit 1
+  fi
+
+  VDS_SERVER_DEBUG_ENABLED=true
+  log_info "VDS Server log level set to DEBUG (was $VDS_SERVER_PRIOR_LOG_LEVEL); it will be restored when setup ends"
+}
+
+# Puts the VDS Server log level back to the prior level. A no-op unless DEBUG was enabled, and the flag is
+# cleared first so the main path and the EXIT trap never both restore.
+restore_vds_server_log_level() {
+  if [ "$VDS_SERVER_DEBUG_ENABLED" != "true" ]; then
+    return 0
+  fi
+  VDS_SERVER_DEBUG_ENABLED=false
+
+  if set_vds_server_log_level "$VDS_SERVER_PRIOR_LOG_LEVEL"; then
+    log_info "VDS Server log level restored to $VDS_SERVER_PRIOR_LOG_LEVEL"
+    return 0
+  fi
+
+  log_error "Could not restore the VDS Server log level to $VDS_SERVER_PRIOR_LOG_LEVEL (HTTP $ADAP_STATUS_CODE)"
+  log_error "Restore it manually with: docker exec fid /opt/radiantone/vds/bin/vdsconfig.sh set-logging-property -path $VDS_LOG_CONFIG_PATH -key $VDS_SERVER_LOG_LEVEL_KEY -value $VDS_SERVER_PRIOR_LOG_LEVEL"
+  return 1
 }
 
 stage_promotion_from_git() {
@@ -613,10 +746,21 @@ parse_args() {
   done
 }
 
-parse_args "$@"
+main() {
+  parse_args "$@"
 
-log_info "Running Radiant Logic IDDM Lite setup"
-log_debug "Debug logging enabled"
-wait_for_fid
-find_and_execute_operations
-log_info "Radiant Logic IDDM Lite setup complete"
+  log_info "Running Radiant Logic IDDM Lite setup"
+  log_debug "Debug logging enabled"
+  wait_for_fid
+  if [ "$SETUP_DEBUG" = "true" ]; then
+    enable_vds_server_debug_logging
+  fi
+  find_and_execute_operations
+  restore_vds_server_log_level || exit 1
+  log_info "Radiant Logic IDDM Lite setup complete"
+}
+
+# Sourcing the script defines the functions without running setup.
+if [[ "${BASH_SOURCE[0]:-}" == "$0" ]]; then
+  main "$@"
+fi
