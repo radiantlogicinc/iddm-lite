@@ -93,6 +93,7 @@ services:
       - '${IDDM_DATA_ROOT}/setup:/input'
     environment:
       - FID_ADMIN_API_KEY=${FID_ADMIN_API_KEY}
+      - SETUP_DEBUG=${SETUP_DEBUG:-false}
     profiles:
       - setup
     deploy:

@@ -11,13 +11,17 @@ check_for_env_files() {
   fi
 }
 
+USAGE="Must specify command: start, stop, setup [--debug], build-iddm, or build-setup"
+
 get_command() {
-  if [ $# -ne 1 ]; then
-    echo "Must specify command: start, stop, setup, build-iddm, or build-setup" >&2
+  if [ $# -eq 1 ]; then
+    echo "$1"
+  elif [ $# -eq 2 ] && [ "$1" = "setup" ] && [ "$2" = "--debug" ]; then
+    echo "$1"
+  else
+    echo "$USAGE" >&2
     exit 1
   fi
-
-  echo "$1"
 }
 
 start() {
@@ -38,14 +42,24 @@ stop() {
     stop
 }
 
-setup() {
-  echo "Running Radiant Logic IDDM-Lite setup"
-
+compose_up_setup() {
   docker compose \
     "${ENV_FILE_ARGS[@]}" \
     --profile setup \
     up \
     --menu=false
+}
+
+setup() {
+  echo "Running Radiant Logic IDDM-Lite setup"
+
+  compose_up_setup
+}
+
+setup_debug() {
+  echo "Running Radiant Logic IDDM-Lite setup with debug logging"
+
+  SETUP_DEBUG=true compose_up_setup
 }
 
 build() {
@@ -65,7 +79,7 @@ command="$(get_command "$@")"
 case "$command" in
   start) start ;;
   stop) stop ;;
-  setup) setup ;;
+  setup) if [ $# -eq 2 ]; then setup_debug; else setup; fi ;;
   build-iddm) build fid ;;
   build-setup) build setup ;;
   *)
