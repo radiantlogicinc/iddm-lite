@@ -8,19 +8,7 @@ This guide will explain how to use the setup image to perform the import and aut
 
 This is a fairly simple process command that is executed in this project: `./run.sh setup`. This will execute all setup tasks. Please see the sections below as they will cover how to supply the configuration necessary for setup to be performed successfully.
 
-To see more detail about what the setup image is doing, run `./run.sh setup --debug`. This sets the `SETUP_DEBUG=true`
-environment variable in the setup container, which is the underlying switch for debug output.
-
-Setup output is written in the form `[LEVEL] message`:
-
-- `[INFO]` shows the main steps of the run, such as staging promotion data, importing certificates and configuring
-  datasources.
-- `[ERROR]` shows why setup failed, including the response from FID when a request is rejected.
-- `[DEBUG]` shows the fine-grained operations behind each step, such as the FID requests made (method, URL and HTTP
-  status), which control files were found, and which files were renamed or edited. It only appears with `--debug`.
-
-Debug output never includes credentials, the git repository URL or the JDBC URL. Datasource usernames, LDAP hosts, ports
-and bind DNs are shown.
+To see more detail about what the setup image is doing, run `./run.sh setup --debug`. This turns on debug-level logging for both the setup image and the FID application's vds_server.log.
 
 The setup image is built on the local machine and published to the local container registry. If it needs to be rebuilt, simply run `./run.sh build-setup`.
 
