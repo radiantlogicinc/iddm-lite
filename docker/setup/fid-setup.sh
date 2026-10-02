@@ -38,6 +38,7 @@ FID_HEALTH_PORT=9100
 FID_ADAP_PORT=8090
 ADAP_STATUS_CODE=""
 ADAP_RESPONSE_BODY=""
+ADAP_TOKEN=""
 INPUT_DIR=/input
 FID_GIT_DIR_PATH=/fid-git
 FID_GIT_CONFIG_DIR_PATH="$FID_GIT_DIR_PATH/config"
@@ -130,9 +131,49 @@ execute_admin_request() {
   echo "$response_body"
 }
 
-# Runs a vdsconfig command through ADAP. Prints the response body on stdout and returns 0 on HTTP 2xx,
-# 1 otherwise. It never exits, so the retry loop and the EXIT trap can call it; callers decide what a
-# failure means. The status and body of the last call are also left in ADAP_STATUS_CODE and
+# Binds to ADAP with the root credentials and keeps the token in ADAP_TOKEN, retrying while ADAP comes up.
+# It returns 1 instead of exiting so the EXIT trap can call it; the token and response body are never logged.
+# The first argument is the maximum number of attempts.
+bind_adap() {
+  local max_attempts i token
+  max_attempts="$1"
+
+  for ((i=1; i<=max_attempts; i++)); do
+    log_debug "Binding to ADAP at https://$FID_HOST:$FID_ADAP_PORT/adap?bind=token, attempt $i of $max_attempts"
+
+    curl -sSk -G -w "\n%{http_code}" \
+      -u "$FID_ROOT_USERNAME:$FID_ROOT_PASSWORD" \
+      --data-urlencode bind=token \
+      "https://$FID_HOST:$FID_ADAP_PORT/adap" > .adap_response_temp 2>&1 \
+      || true
+
+    ADAP_STATUS_CODE=$(tail -n1 < .adap_response_temp)
+    ADAP_RESPONSE_BODY=$(sed '$d' < .adap_response_temp)
+    rm -f .adap_response_temp
+    log_debug "ADAP bind response status: $ADAP_STATUS_CODE"
+
+    if [[ "$ADAP_STATUS_CODE" =~ ^2[0-9][0-9]$ ]]; then
+      # ADAP sends the token as JSON under a non-JSON content type, so the body is parsed regardless.
+      token=$(echo "$ADAP_RESPONSE_BODY" | jq -r '.token // empty' 2>/dev/null) || token=""
+      if [ -n "$token" ] && [ "$token" != "null" ]; then
+        ADAP_TOKEN="$token"
+        log_debug "ADAP bind succeeded"
+        return 0
+      fi
+    fi
+
+    if [ "$i" -lt "$max_attempts" ]; then
+      sleep 2
+    fi
+  done
+
+  log_error "Could not bind to ADAP (HTTP $ADAP_STATUS_CODE)"
+  return 1
+}
+
+# Runs a vdsconfig command through ADAP, authenticating with the token from bind_adap. Prints the response
+# body on stdout and returns 0 on HTTP 2xx, 1 otherwise. It never exits, so the EXIT trap can call it;
+# callers decide what a failure means. The status and body of the last call are also left in ADAP_STATUS_CODE and
 # ADAP_RESPONSE_BODY, because a caller that captures stdout runs this in a subshell and loses plain variables.
 # The first argument is the command name, the rest are name=value parameters.
 execute_vdsconfig_request() {
@@ -151,7 +192,7 @@ execute_vdsconfig_request() {
   log_debug "GET https://$FID_HOST:$FID_ADAP_PORT/adap/util vdsconfig $command_name $*"
 
   curl -sSk -G -w "\n%{http_code}" \
-    -u "$FID_ROOT_USERNAME:$FID_ROOT_PASSWORD" \
+    -H "Token: $ADAP_TOKEN" \
     --data-urlencode action=vdsconfig \
     --data-urlencode "commandname=$command_name" \
     --data-urlencode outputmode=json \
@@ -169,31 +210,28 @@ execute_vdsconfig_request() {
   [[ "$ADAP_STATUS_CODE" =~ ^2[0-9][0-9]$ ]]
 }
 
-# Reads the current VDS Server log level into VDS_SERVER_PRIOR_LOG_LEVEL, retrying while ADAP comes up.
-# A level that was never configured falls back to the default.
+# Reads the current VDS Server log level into VDS_SERVER_PRIOR_LOG_LEVEL. A level that was never configured
+# falls back to the default. A single attempt is enough because the ADAP bind has already waited for readiness.
 read_vds_server_log_level() {
-  local i level error_message
-  for ((i=1; i<=10; i++)); do
-    log_debug "Reading VDS Server log level, attempt $i of 10"
+  local level error_message
 
-    if execute_vdsconfig_request get-logging-property \
-        "path=$VDS_LOG_CONFIG_PATH" "key=$VDS_SERVER_LOG_LEVEL_KEY" > /dev/null; then
-      level=$(echo "$ADAP_RESPONSE_BODY" | jq -r '.data.value // empty' 2>/dev/null) || level=""
-      if [ -n "$level" ] && [ "$level" != "null" ]; then
-        VDS_SERVER_PRIOR_LOG_LEVEL="$level"
-        return 0
-      fi
-    else
-      error_message=$(echo "$ADAP_RESPONSE_BODY" | jq -r '.errorMessage // empty' 2>/dev/null) || error_message=""
-      if [[ "$error_message" == *"could not find property"* ]]; then
-        VDS_SERVER_PRIOR_LOG_LEVEL="$VDS_SERVER_DEFAULT_LOG_LEVEL"
-        log_info "No VDS Server log level is configured, assuming $VDS_SERVER_DEFAULT_LOG_LEVEL"
-        return 0
-      fi
+  log_debug "Reading VDS Server log level"
+
+  if execute_vdsconfig_request get-logging-property \
+      "path=$VDS_LOG_CONFIG_PATH" "key=$VDS_SERVER_LOG_LEVEL_KEY" > /dev/null; then
+    level=$(echo "$ADAP_RESPONSE_BODY" | jq -r '.data.value // empty' 2>/dev/null) || level=""
+    if [ -n "$level" ] && [ "$level" != "null" ]; then
+      VDS_SERVER_PRIOR_LOG_LEVEL="$level"
+      return 0
     fi
-
-    sleep 2
-  done
+  else
+    error_message=$(echo "$ADAP_RESPONSE_BODY" | jq -r '.errorMessage // empty' 2>/dev/null) || error_message=""
+    if [[ "$error_message" == *"could not find property"* ]]; then
+      VDS_SERVER_PRIOR_LOG_LEVEL="$VDS_SERVER_DEFAULT_LOG_LEVEL"
+      log_info "No VDS Server log level is configured, assuming $VDS_SERVER_DEFAULT_LOG_LEVEL"
+      return 0
+    fi
+  fi
 
   log_error "Could not read the VDS Server log level through ADAP (HTTP $ADAP_STATUS_CODE)"
   exit 1
@@ -231,6 +269,15 @@ restore_vds_server_log_level() {
   if set_vds_server_log_level "$VDS_SERVER_PRIOR_LOG_LEVEL"; then
     log_info "VDS Server log level restored to $VDS_SERVER_PRIOR_LOG_LEVEL"
     return 0
+  fi
+
+  # A long setup can outlive the token, so a rejected token gets one fresh bind and one retry.
+  if [ "$ADAP_STATUS_CODE" = "401" ] || [ "$ADAP_STATUS_CODE" = "403" ]; then
+    log_debug "ADAP token rejected, binding again"
+    if bind_adap 1 && set_vds_server_log_level "$VDS_SERVER_PRIOR_LOG_LEVEL"; then
+      log_info "VDS Server log level restored to $VDS_SERVER_PRIOR_LOG_LEVEL"
+      return 0
+    fi
   fi
 
   log_error "Could not restore the VDS Server log level to $VDS_SERVER_PRIOR_LOG_LEVEL (HTTP $ADAP_STATUS_CODE)"
@@ -753,6 +800,7 @@ main() {
   log_debug "Debug logging enabled"
   wait_for_fid
   if [ "$SETUP_DEBUG" = "true" ]; then
+    bind_adap 10 || exit 1
     enable_vds_server_debug_logging
   fi
   find_and_execute_operations
