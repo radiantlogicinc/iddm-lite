@@ -40,8 +40,10 @@ ADAP_STATUS_CODE=""
 ADAP_RESPONSE_BODY=""
 ADAP_TOKEN=""
 INPUT_DIR=/input
-FID_GIT_DIR_PATH=/fid-git
-FID_GIT_CONFIG_DIR_PATH="$FID_GIT_DIR_PATH/config"
+PROMOTION_STAGING_ROOT=/tmp/promotion
+PROMOTION_STAGING_DIR="$PROMOTION_STAGING_ROOT/config"
+PROMOTION_IMPORT_REQUEST_FILE="$PROMOTION_STAGING_ROOT/import-request.json"
+PROMOTION_IMPORT_ZIP_FILE=/tmp/iddm-promotion-import.zip
 INPUT_PROMOTION_GIT_FILE="$INPUT_DIR/iddm-promotion-git.sh"
 INPUT_PROMOTION_ZIP_FILE="$INPUT_DIR/iddm-promotion.zip"
 RDN_REGEX="^(.+)=(.+)$"
@@ -93,7 +95,8 @@ execute_admin_request() {
   fid_admin_base_url="https://$FID_HOST:$FID_ADMIN_PORT/v8/admin"
 
   # Only the method is derived from the curl arguments; the arguments themselves can carry
-  # credentials and request bodies, so they are never logged.
+  # credentials and request bodies, so they are never logged. Response bodies are logged:
+  # at DEBUG on success and at ERROR on failure.
   local method arg prev
   method=""
   prev=""
@@ -128,11 +131,13 @@ execute_admin_request() {
     exit 1
   fi
 
+  log_debug "Admin call response body: $response_body"
   echo "$response_body"
 }
 
 # Binds to ADAP with the root credentials and keeps the token in ADAP_TOKEN, retrying while ADAP comes up.
-# It returns 1 instead of exiting so the EXIT trap can call it; the token and response body are never logged.
+# It returns 1 instead of exiting so the EXIT trap can call it. Error response bodies are logged, but the success body
+# is not, because it holds the token.
 # The first argument is the maximum number of attempts.
 bind_adap() {
   local max_attempts i token
@@ -157,9 +162,14 @@ bind_adap() {
       token=$(echo "$ADAP_RESPONSE_BODY" | jq -r '.token // empty' 2>/dev/null) || token=""
       if [ -n "$token" ] && [ "$token" != "null" ]; then
         ADAP_TOKEN="$token"
+        log_debug "ADAP bind response body not logged: it contains the token"
         log_debug "ADAP bind succeeded"
         return 0
       fi
+    fi
+
+    if [[ ! "$ADAP_STATUS_CODE" =~ ^2[0-9][0-9]$ ]]; then
+      log_error "ADAP bind attempt $i of $max_attempts failed with HTTP status '$ADAP_STATUS_CODE', response: $ADAP_RESPONSE_BODY"
     fi
 
     if [ "$i" -lt "$max_attempts" ]; then
@@ -173,8 +183,9 @@ bind_adap() {
 
 # Runs a vdsconfig command through ADAP, authenticating with the token from bind_adap. Prints the response
 # body on stdout and returns 0 on HTTP 2xx, 1 otherwise. It never exits, so the EXIT trap can call it;
-# callers decide what a failure means. The status and body of the last call are also left in ADAP_STATUS_CODE and
-# ADAP_RESPONSE_BODY, because a caller that captures stdout runs this in a subshell and loses plain variables.
+# callers decide what a failure means. Response bodies are logged, at DEBUG on success and ERROR on failure.
+# The status and body of the last call are also left in ADAP_STATUS_CODE and ADAP_RESPONSE_BODY, because a caller
+# that captures stdout runs this in a subshell and loses plain variables.
 # The first argument is the command name, the rest are name=value parameters.
 execute_vdsconfig_request() {
   local command_name
@@ -204,6 +215,12 @@ execute_vdsconfig_request() {
   ADAP_RESPONSE_BODY=$(sed '$d' < .adap_response_temp)
   rm -f .adap_response_temp
   log_debug "ADAP response status: $ADAP_STATUS_CODE"
+
+  if [[ "$ADAP_STATUS_CODE" =~ ^2[0-9][0-9]$ ]]; then
+    log_debug "ADAP response body: $ADAP_RESPONSE_BODY"
+  else
+    log_error "ADAP vdsconfig $command_name failed with HTTP status '$ADAP_STATUS_CODE', response: $ADAP_RESPONSE_BODY"
+  fi
 
   echo "$ADAP_RESPONSE_BODY"
 
@@ -314,19 +331,21 @@ Host *
   IdentitiesOnly yes
 EOF
 
-  if [ -d "$FID_GIT_CONFIG_DIR_PATH" ]; then
-    log_debug "Removing $FID_GIT_CONFIG_DIR_PATH"
-    rm -rf "$FID_GIT_CONFIG_DIR_PATH"
+  if [ -d "$PROMOTION_STAGING_DIR" ]; then
+    log_debug "Removing $PROMOTION_STAGING_DIR"
+    rm -rf "$PROMOTION_STAGING_DIR"
   fi
+
+  mkdir -p "$PROMOTION_STAGING_ROOT"
 
   log_debug "Writing SSH key file $HOME/.ssh/id_key"
   echo "$GIT_SSH_KEY_BASE64" | base64 -d > "$HOME/.ssh/id_key"
   chmod 600 ~/.ssh/id_key
-  log_debug "Cloning git repo into $FID_GIT_CONFIG_DIR_PATH"
-  git clone "$GIT_REPO" "$FID_GIT_CONFIG_DIR_PATH"
+  log_debug "Cloning git repo into $PROMOTION_STAGING_DIR"
+  git clone "$GIT_REPO" "$PROMOTION_STAGING_DIR"
 
   (
-    cd "$FID_GIT_CONFIG_DIR_PATH"
+    cd "$PROMOTION_STAGING_DIR"
     log_debug "Checking out branch $GIT_BRANCH"
     git checkout "$GIT_BRANCH"
   )
@@ -342,51 +361,60 @@ stage_promotion_from_zip() {
     exit 1
   fi
 
-  if [ -d "$FID_GIT_CONFIG_DIR_PATH" ]; then
-    log_debug "Removing $FID_GIT_CONFIG_DIR_PATH"
-    rm -rf "$FID_GIT_CONFIG_DIR_PATH"
+  if [ -d "$PROMOTION_STAGING_DIR" ]; then
+    log_debug "Removing $PROMOTION_STAGING_DIR"
+    rm -rf "$PROMOTION_STAGING_DIR"
   fi
 
-  log_debug "Unzipping $INPUT_PROMOTION_ZIP_FILE into $FID_GIT_CONFIG_DIR_PATH"
-  unzip -q "$INPUT_PROMOTION_ZIP_FILE" -d "$FID_GIT_CONFIG_DIR_PATH"
-  if [ ! -f "$FID_GIT_CONFIG_DIR_PATH/report.json" ] && [ -f "$FID_GIT_CONFIG_DIR_PATH"/*/report.json ]; then
+  mkdir -p "$PROMOTION_STAGING_ROOT"
+
+  log_debug "Unzipping $INPUT_PROMOTION_ZIP_FILE into $PROMOTION_STAGING_DIR"
+  unzip -q "$INPUT_PROMOTION_ZIP_FILE" -d "$PROMOTION_STAGING_DIR"
+  if [ ! -f "$PROMOTION_STAGING_DIR/report.json" ] && [ -f "$PROMOTION_STAGING_DIR"/*/report.json ]; then
     log_info "Fixing output structure after unzip"
-    log_debug "Flattening nested directory under $FID_GIT_CONFIG_DIR_PATH"
-    mv "$FID_GIT_CONFIG_DIR_PATH"/*/* "$FID_GIT_CONFIG_DIR_PATH"
+    log_debug "Flattening nested directory under $PROMOTION_STAGING_DIR"
+    mv "$PROMOTION_STAGING_DIR"/*/* "$PROMOTION_STAGING_DIR"
   fi
 
-  log_debug "Checking for $FID_GIT_CONFIG_DIR_PATH/report.json"
-  if [ ! -f "$FID_GIT_CONFIG_DIR_PATH/report.json" ]; then
+  log_debug "Checking for $PROMOTION_STAGING_DIR/report.json"
+  if [ ! -f "$PROMOTION_STAGING_DIR/report.json" ]; then
     log_error "Promotion data is invalid, cannot proceed"
     exit 1
   fi
   log_info "Promotion data staged successfully"
 }
 
+# Builds the zip FID's import endpoint takes. FID reads the request entry first and extracts every other entry
+# into its own config directory, so the request goes in before the staged files and .git stays out.
+build_promotion_import_zip() {
+  log_debug "Writing import request to $PROMOTION_IMPORT_REQUEST_FILE (body not logged)"
+  jq '{apply: true, resources: .resources}' "$PROMOTION_STAGING_DIR/report.json" > "$PROMOTION_IMPORT_REQUEST_FILE"
+
+  rm -f "$PROMOTION_IMPORT_ZIP_FILE"
+  zip -q -j "$PROMOTION_IMPORT_ZIP_FILE" "$PROMOTION_IMPORT_REQUEST_FILE"
+  (cd "$PROMOTION_STAGING_DIR" && zip -q -r "$PROMOTION_IMPORT_ZIP_FILE" . -x '.git' '.git/*')
+
+  local entry_count
+  entry_count=$(unzip -Z1 "$PROMOTION_IMPORT_ZIP_FILE" | wc -l | tr -d ' ')
+  log_debug "Built $PROMOTION_IMPORT_ZIP_FILE with $entry_count entries"
+}
+
 execute_promotion_import() {
   log_info "Executing promotion import"
 
-  local resources request
-  log_debug "Extracting .resources from $FID_GIT_CONFIG_DIR_PATH/report.json"
-  resources=$(jq '.resources' "$FID_GIT_CONFIG_DIR_PATH/report.json")
-  log_debug "Building promotion import payload (body not logged)"
-  request=$(cat <<EOF
-{
-  "apply": true,
-  "resources": $resources,
-  "placeholders": {}
-}
-EOF
-)
+  build_promotion_import_zip
 
-  log_debug "Import URI: /configuration_promotion/resources/import/git"
+  log_debug "Import URI: /configuration_promotion/resources/import/zip"
   execute_admin_request \
-    "/configuration_promotion/resources/import/git" \
+    "/configuration_promotion/resources/import/zip" \
     -X POST \
-    -H 'Content-Type: application/json' \
+    -H 'Content-Type: application/octet-stream' \
     -H 'Accept: application/json' \
-    -d "$request" \
+    --data-binary "@$PROMOTION_IMPORT_ZIP_FILE" \
     1>/dev/null
+
+  log_debug "Removing $PROMOTION_IMPORT_ZIP_FILE and $PROMOTION_STAGING_ROOT"
+  rm -rf "$PROMOTION_IMPORT_ZIP_FILE" "$PROMOTION_STAGING_ROOT"
 
   log_info "Promotion import executed successfully"
 }
@@ -525,9 +553,9 @@ execute_datasource_update() {
 fix_report_change_status() {
   log_info "Setting report.json change status for all resources to ADDED prior to performing promotion import"
 
-  log_debug "Running sed on $FID_GIT_CONFIG_DIR_PATH/report.json"
+  log_debug "Running sed on $PROMOTION_STAGING_DIR/report.json"
   sed -i 's/"changeStatus" : null,/"changeStatus" : "ADDED",/g' \
-    "$FID_GIT_CONFIG_DIR_PATH/report.json"
+    "$PROMOTION_STAGING_DIR/report.json"
 }
 
 find_and_execute_operations() {
@@ -640,7 +668,7 @@ fix_mapping_hashes() {
   normalized_actual_rdn="$2"
 
   local report_file
-  report_file="$FID_GIT_CONFIG_DIR_PATH/report.json"
+  report_file="$PROMOTION_STAGING_DIR/report.json"
   if [ ! -f "$report_file" ]; then
     log_error "Cannot find report.json in config data, aborting"
     exit 1
@@ -659,9 +687,9 @@ fix_mapping_hashes() {
     new_pipeline_id="${pipeline_id//$normalized_staging_rdn/$normalized_actual_rdn}"
     new_hash="$(generate_mapping_hash "$new_pipeline_id")"
 
-    log_debug "Moving mapping $hash to $new_hash: $FID_GIT_CONFIG_DIR_PATH/file/vds_server/conf/sync/mappings/$hash -> $FID_GIT_CONFIG_DIR_PATH/file/vds_server/conf/sync/mappings/$new_hash"
-    mv "$FID_GIT_CONFIG_DIR_PATH/file/vds_server/conf/sync/mappings/$hash" \
-      "$FID_GIT_CONFIG_DIR_PATH/file/vds_server/conf/sync/mappings/$new_hash"
+    log_debug "Moving mapping $hash to $new_hash: $PROMOTION_STAGING_DIR/file/vds_server/conf/sync/mappings/$hash -> $PROMOTION_STAGING_DIR/file/vds_server/conf/sync/mappings/$new_hash"
+    mv "$PROMOTION_STAGING_DIR/file/vds_server/conf/sync/mappings/$hash" \
+      "$PROMOTION_STAGING_DIR/file/vds_server/conf/sync/mappings/$new_hash"
 
     log_debug "Rewriting hash $hash to $new_hash in $report_file"
     sed -i "s/mappings\/$hash\/mappings\.json/mappings\/$new_hash\/mappings.json/g" "$report_file"
@@ -675,8 +703,8 @@ find_and_replace_rdn() {
   replacement="$2"
 
   log_debug "Replacing '$existing' with '$replacement'"
-  log_debug "Replacing content in all files under $FID_GIT_CONFIG_DIR_PATH except .jar and .dvx"
-  find "$FID_GIT_CONFIG_DIR_PATH" \
+  log_debug "Replacing content in all files under $PROMOTION_STAGING_DIR except .jar and .dvx"
+  find "$PROMOTION_STAGING_DIR" \
     -type f \
     -not -name '*.jar' -not -name '*.dvx' \
     -print0 | \
@@ -695,7 +723,7 @@ find_and_replace_rdn() {
       fi
       mv "$file" "$transformed_file"
     fi
-  done < <(find "$FID_GIT_CONFIG_DIR_PATH" -type f -not -name '*.jar')
+  done < <(find "$PROMOTION_STAGING_DIR" -type f -not -name '*.jar')
 }
 
 replace_rdn_in_dvx() {
@@ -757,7 +785,7 @@ find_and_replace_rdn_in_dvx() {
   (
     export -f replace_rdn_in_dvx
     export -f log_debug
-    find "$FID_GIT_CONFIG_DIR_PATH" \
+    find "$PROMOTION_STAGING_DIR" \
       -type f \
       -name '*.dvx' \
       -print0 | \
