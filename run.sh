@@ -165,7 +165,6 @@ confirm_clean() {
   echo "This will delete these directories:"
   echo "  $data_root/zookeeper"
   echo "  $data_root/fid"
-  echo "  $data_root/git"
   echo "This will remove the containers: fid, zookeeper, fid-setup"
   echo "This will remove these images, if they exist:"
   compose_all_profiles config --images | sed 's/^/  /'
@@ -185,7 +184,7 @@ delete_application_data() {
   local target
   data_root="$1"
 
-  for name in zookeeper fid git; do
+  for name in zookeeper fid; do
     target="$data_root/$name"
     if [ ! -e "$target" ]; then
       continue

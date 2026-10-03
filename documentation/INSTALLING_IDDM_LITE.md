@@ -38,7 +38,6 @@ The location specified in the `IDDM_DATA_ROOT` environment variable is where all
 ${IDDM_DATA_ROOT}/
   zookeeper/
   fid/
-  git/
 ```
 
 ## Stopping the Application
