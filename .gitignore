@@ -4,3 +4,4 @@
 .env-server
 reset.sh
 test-data
+.worktrees

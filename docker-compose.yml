@@ -5,7 +5,6 @@ services:
       args:
         - ZOOKEEPER_VERSION=${ZOOKEEPER_VERSION}
     image: zookeeper-lite:${ZOOKEEPER_VERSION}
-    platform: linux/amd64
     container_name: zookeeper
     hostname: zookeeper-0
     networks:
@@ -54,7 +53,6 @@ services:
       - '8089:8089'
       - '8090:8090'
     environment:
-      - GIT_DIRECTORY=/opt/radiantone/git
       - IDDM_SERVICE_ACCOUNT_USERNAME=cn=api-service-user,ou=ServiceUsers,cn=config
       - ZK=external
       - ZK_CLUSTER=${CLUSTER_NAME}
@@ -74,7 +72,6 @@ services:
       - USE_CONTROL_PANEL=false
     volumes:
       - '${IDDM_DATA_ROOT}/fid/vds:/opt/radiantone/vds'
-      - '${IDDM_DATA_ROOT}/git:/opt/radiantone/git'
     deploy:
       resources:
         limits:
@@ -85,14 +82,15 @@ services:
       context: ./docker/setup
     image: fid-lite-setup:latest
     container_name: fid-setup
-    platform: linux/amd64
     networks:
       - fidNetwork
     volumes:
-      - '${IDDM_DATA_ROOT}/git:/fid-git'
       - '${IDDM_DATA_ROOT}/setup:/input'
     environment:
       - FID_ADMIN_API_KEY=${FID_ADMIN_API_KEY}
+      - SETUP_DEBUG=${SETUP_DEBUG:-false}
+      - FID_ROOT_USERNAME=${IDDM_ROOT_USERNAME}
+      - FID_ROOT_PASSWORD=${IDDM_ROOT_PASSWORD}
     profiles:
       - setup
     deploy:
