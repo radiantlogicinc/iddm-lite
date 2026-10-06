@@ -19,12 +19,14 @@ automatically remove deleted resources.
 For this reason, if you use the setup image, we recommend this sequence:
 
 1. Shut down IDDM Lite with `./run.sh stop`.
-2. Delete the application data.
+2. Delete the application data and the existing containers, as described in
+   [Deleting Application Data](./INSTALLING_IDDM_LITE.md#deleting-application-data).
 3. Restart IDDM Lite with `./run.sh start`.
 4. Run the setup again with `./run.sh setup`.
 
 Back up any data involved by exporting it to LDIF and importing it again later, as described in
-[Exporting and Importing LDIF](./ADDITIONAL_CONFIGURATION_MECHANISMS.md#exporting-and-importing-ldif).
+[Exporting and Importing LDIF](./ADDITIONAL_CONFIGURATION_MECHANISMS.md#exporting-and-importing-ldif). Keep the
+`setup/` directory when you delete the data, since step 4 needs its control files.
 
 ## Running the Setup Image
 

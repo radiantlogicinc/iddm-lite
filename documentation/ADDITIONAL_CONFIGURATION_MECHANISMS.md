@@ -82,8 +82,10 @@ Existing entries are not overwritten by an import.
 Use a file path under `/opt/radiantone/vds/` for `<ldif>`, such as `/opt/radiantone/vds/ldif/export.ldif`. That
 directory is mounted from `${IDDM_DATA_ROOT}/fid/vds/` on the server, so the same file is found there.
 
-Deleting the application data deletes this file too. Before you delete it, copy the file to a location outside
-`${IDDM_DATA_ROOT}`, and copy it back under `${IDDM_DATA_ROOT}/fid/vds/` before you import it.
+[Deleting the application data](./INSTALLING_IDDM_LITE.md#deleting-application-data) deletes this file too. Before you
+delete it, copy the file to a location outside `${IDDM_DATA_ROOT}`, and copy it back under `${IDDM_DATA_ROOT}/fid/vds/`
+before you import it. If docker runs as `root`, the file is owned by `root`, so copy it with `sudo`. See
+[File Permissions](./INSTALLING_IDDM_LITE.md#file-permissions).
 
 The `-interactive` option makes the command wait and show progress until the task finishes. Without it, the task runs
 in the background and the command returns at once.
